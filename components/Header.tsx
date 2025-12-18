@@ -1,6 +1,8 @@
-
+"use client"
 import React from 'react';
+import Link from 'next/link';
 import { COLORS, NAVIGATION_LINKS } from '../constants';
+import CartIcon from './CartIcon';
 
 const Header: React.FC = () => {
   return (
@@ -54,10 +56,15 @@ const Header: React.FC = () => {
               </li>
             ))}
           </ul>
-          <div className="cursor-pointer hover:text-[#00C16E] transition-colors p-2">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+          <div className="flex items-center space-x-4">
+            <div className="cursor-pointer hover:text-[#00C16E] transition-colors p-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <Link href="/cart">
+              <CartIcon onClick={() => {}} />
+            </Link>
           </div>
         </div>
       </nav>
