@@ -47,6 +47,11 @@ const DigitalPrintingPage: React.FC = () => {
     const [deliveryAddress, setDeliveryAddress] = useState("");
     const [comments, setComments] = useState("");
     const [checkLayout, setCheckLayout] = useState(false);
+    
+    // Состояния для файлов
+    const [frontFile, setFrontFile] = useState<File | null>(null);
+    const [backFile, setBackFile] = useState<File | null>(null);
+    const [previewFile, setPreviewFile] = useState<File | null>(null);
 
     // Тиражи
     const quantities = [50, 100, 250, 500];
@@ -109,6 +114,10 @@ const DigitalPrintingPage: React.FC = () => {
         setOrderData({ type, format, quantity, basePrice: price, specs });
         // Сброс формы
         setCreasing(0); setFolding(false); setExtraCut(0); setHoles(0); setRounding(0);
+        setEyelets(0); setEyeletColor("SILVER");
+        setDeliveryAddress(""); setComments(""); setCheckLayout(false);
+        // Сброс файлов
+        setFrontFile(null); setBackFile(null); setPreviewFile(null);
         setActiveTab('ORDER_CONFIG');
         window.scrollTo(0, 0);
     };
@@ -124,46 +133,95 @@ const DigitalPrintingPage: React.FC = () => {
     };
     const totalPrice = calculateTotal();
 
+    // Функция конвертации File в base64
+    const fileToBase64 = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = error => reject(error);
+        });
+    };
+
     // Функция добавления в корзину
-    const handleAddToCart = () => {
+    const handleAddToCart = async () => {
         if (!orderData) return;
 
-        // Дата готовности (+3 дня)
-        const readyDate = new Date();
-        readyDate.setDate(readyDate.getDate() + 3);
-        const dateStr = readyDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
-        const timeStr = "15:00";
+        try {
+            // Дата готовности (+3 дня)
+            const readyDate = new Date();
+            readyDate.setDate(readyDate.getDate() + 3);
+            const dateStr = readyDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+            const timeStr = "15:00";
 
-        const cartItem: CartItem = {
-            id: `${orderData.type}-${orderData.format}-${orderData.quantity}-${Date.now()}`,
-            type: orderData.type,
-            format: orderData.format,
-            quantity: orderData.quantity,
-            basePrice: orderData.basePrice,
-            specs: orderData.specs,
-            creasing: creasing > 0 ? creasing : undefined,
-            folding: folding || undefined,
-            extraCut: extraCut > 0 ? extraCut : undefined,
-            holes: holes > 0 ? holes : undefined,
-            rounding: rounding > 0 ? rounding : undefined,
-            eyelets: eyelets > 0 ? eyelets : undefined,
-            eyeletColor: eyelets > 0 ? eyeletColor : undefined,
-            deliveryAddress: deliveryAddress || undefined,
-            comments: comments || undefined,
-            checkLayout: checkLayout || undefined,
-            readyDate: dateStr,
-            readyTime: timeStr,
-            totalPrice: totalPrice,
-        };
+            // Конвертируем файлы в base64
+            let frontFileBase64: string | undefined;
+            let backFileBase64: string | undefined;
+            let previewFileBase64: string | undefined;
 
-        addItem(cartItem);
-        
-        // Показываем уведомление (можно заменить на toast)
-        alert('Товар добавлен в корзину!');
-        
-        // Опционально: сброс формы или переход в корзину
-        // setActiveTab('MAIN');
-        // setOrderData(null);
+            try {
+                if (frontFile) {
+                    frontFileBase64 = await fileToBase64(frontFile);
+                }
+                if (backFile) {
+                    backFileBase64 = await fileToBase64(backFile);
+                }
+                if (previewFile) {
+                    previewFileBase64 = await fileToBase64(previewFile);
+                }
+            } catch (fileError) {
+                console.error('Ошибка при конвертации файлов:', fileError);
+                alert('Ошибка при обработке файлов. Товар будет добавлен без файлов.');
+            }
+
+            const cartItem: CartItem = {
+                id: `${orderData.type}-${orderData.format}-${orderData.quantity}-${Date.now()}`,
+                type: orderData.type,
+                format: orderData.format,
+                quantity: orderData.quantity,
+                basePrice: orderData.basePrice,
+                specs: orderData.specs,
+                creasing: creasing > 0 ? creasing : undefined,
+                folding: folding || undefined,
+                extraCut: extraCut > 0 ? extraCut : undefined,
+                holes: holes > 0 ? holes : undefined,
+                rounding: rounding > 0 ? rounding : undefined,
+                eyelets: eyelets > 0 ? eyelets : undefined,
+                eyeletColor: eyelets > 0 ? eyeletColor : undefined,
+                deliveryAddress: deliveryAddress || undefined,
+                comments: comments || undefined,
+                checkLayout: checkLayout || undefined,
+                readyDate: dateStr,
+                readyTime: timeStr,
+                totalPrice: totalPrice,
+                // Файлы в base64
+                frontFile: frontFileBase64,
+                backFile: backFileBase64,
+                previewFile: previewFileBase64,
+                // Метаданные файлов
+                frontFileName: frontFile?.name,
+                backFileName: backFile?.name,
+                previewFileName: previewFile?.name,
+                frontFileSize: frontFile?.size,
+                backFileSize: backFile?.size,
+                previewFileSize: previewFile?.size,
+                frontFileType: frontFile?.type,
+                backFileType: backFile?.type,
+                previewFileType: previewFile?.type,
+            };
+
+            addItem(cartItem);
+            
+            // Показываем уведомление (можно заменить на toast)
+            alert('Товар добавлен в корзину!');
+            
+            // Опционально: сброс формы или переход в корзину
+            // setActiveTab('MAIN');
+            // setOrderData(null);
+        } catch (error) {
+            console.error('Ошибка при добавлении в корзину:', error);
+            alert('Произошла ошибка при добавлении товара в корзину. Пожалуйста, попробуйте еще раз.');
+        }
     };
 
     // --- РЕНДЕРЫ ---
@@ -374,26 +432,52 @@ const DigitalPrintingPage: React.FC = () => {
                                     {/* Кнопка загрузки Лицо */}
                                     <div className="flex flex-col gap-1">
                                         <label className="cursor-pointer group">
-                                            <div className="border-2 border-[#006837] rounded bg-white px-3 py-1 flex items-center gap-2 hover:bg-[#f0fff8] transition-colors min-w-[140px]">
+                                            <div className={`border-2 ${frontFile ? 'border-[#00C16E] bg-[#f0fff8]' : 'border-[#006837]'} rounded bg-white px-3 py-1 flex items-center gap-2 hover:bg-[#f0fff8] transition-colors min-w-[140px]`}>
                                                 <span className="text-2xl font-bold pb-1 text-[#006837]">📥</span>
-                                                <span className="font-bold uppercase text-[#006837]">ЗАГРУЗИТЬ</span>
+                                                <span className="font-bold uppercase text-[#006837]">
+                                                    {frontFile ? '✓ ЗАГРУЖЕНО' : 'ЗАГРУЗИТЬ'}
+                                                </span>
                                             </div>
-                                            <input type="file" className="hidden" />
+                                            <input 
+                                                type="file" 
+                                                className="hidden" 
+                                                accept=".tiff,.tif,.jpg,.jpeg,.png"
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) setFrontFile(file);
+                                                }}
+                                            />
                                         </label>
-                                        <span className="text-[9px] uppercase text-gray-500 leading-tight">ЛИЦЕВАЯ СТОРОНА<br/>(92x52 мм / 86x56мм)</span>
+                                        <span className="text-[9px] uppercase text-gray-500 leading-tight">
+                                            ЛИЦЕВАЯ СТОРОНА<br/>(92x52 мм / 86x56мм)
+                                            {frontFile && <span className="block text-[#00C16E] font-semibold">{frontFile.name}</span>}
+                                        </span>
                                     </div>
 
                                     {/* Кнопка загрузки Оборот */}
                                     {orderData.specs.includes("4+4") && (
                                         <div className="flex flex-col gap-1">
                                             <label className="cursor-pointer group">
-                                                <div className="border-2 border-[#006837] rounded bg-white px-3 py-1 flex items-center gap-2 hover:bg-[#f0fff8] transition-colors min-w-[140px]">
+                                                <div className={`border-2 ${backFile ? 'border-[#00C16E] bg-[#f0fff8]' : 'border-[#006837]'} rounded bg-white px-3 py-1 flex items-center gap-2 hover:bg-[#f0fff8] transition-colors min-w-[140px]`}>
                                                     <span className="text-2xl font-bold pb-1 text-[#006837]">📥</span>
-                                                    <span className="font-bold uppercase text-[#006837]">ЗАГРУЗИТЬ</span>
+                                                    <span className="font-bold uppercase text-[#006837]">
+                                                        {backFile ? '✓ ЗАГРУЖЕНО' : 'ЗАГРУЗИТЬ'}
+                                                    </span>
                                                 </div>
-                                                <input type="file" className="hidden" />
+                                                <input 
+                                                    type="file" 
+                                                    className="hidden"
+                                                    accept=".tiff,.tif,.jpg,.jpeg,.png"
+                                                    onChange={(e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (file) setBackFile(file);
+                                                    }}
+                                                />
                                             </label>
-                                            <span className="text-[9px] uppercase text-gray-500 leading-tight">ОБОРОТНАЯ СТОРОНА<br/>(92x52 мм / 86x56мм)</span>
+                                            <span className="text-[9px] uppercase text-gray-500 leading-tight">
+                                                ОБОРОТНАЯ СТОРОНА<br/>(92x52 мм / 86x56мм)
+                                                {backFile && <span className="block text-[#00C16E] font-semibold">{backFile.name}</span>}
+                                            </span>
                                         </div>
                                     )}
                                 </div>
@@ -403,13 +487,26 @@ const DigitalPrintingPage: React.FC = () => {
                                 <h3 className="font-bold text-xl uppercase pt-2">ПРЕВЬЮ МАКЕТА</h3>
                                 <div className="flex flex-col gap-1">
                                     <label className="cursor-pointer group w-fit">
-                                        <div className="border-2 border-[#006837] rounded bg-white px-3 py-1 flex items-center gap-2 hover:bg-[#f0fff8] transition-colors min-w-[140px]">
+                                        <div className={`border-2 ${previewFile ? 'border-[#00C16E] bg-[#f0fff8]' : 'border-[#006837]'} rounded bg-white px-3 py-1 flex items-center gap-2 hover:bg-[#f0fff8] transition-colors min-w-[140px]`}>
                                             <span className="text-2xl font-bold pb-1 text-[#006837]">📥</span>
-                                            <span className="font-bold uppercase text-[#006837]">ЗАГРУЗИТЬ</span>
+                                            <span className="font-bold uppercase text-[#006837]">
+                                                {previewFile ? '✓ ЗАГРУЖЕНО' : 'ЗАГРУЗИТЬ'}
+                                            </span>
                                         </div>
-                                        <input type="file" className="hidden" />
+                                        <input 
+                                            type="file" 
+                                            className="hidden"
+                                            accept=".jpg,.jpeg,.png"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) setPreviewFile(file);
+                                            }}
+                                        />
                                     </label>
-                                    <span className="text-[9px] uppercase text-gray-500">ФОРМАТ JPEG</span>
+                                    <span className="text-[9px] uppercase text-gray-500">
+                                        ФОРМАТ JPEG
+                                        {previewFile && <span className="block text-[#00C16E] font-semibold">{previewFile.name}</span>}
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -565,9 +662,14 @@ const DigitalPrintingPage: React.FC = () => {
                             </div>
 
                             {/* Кнопка Оформить заказ */}
-                            <div 
-                                className="flex rounded-md overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
-                                onClick={handleAddToCart}
+                            <button
+                                type="button"
+                                className="flex rounded-md overflow-hidden cursor-pointer hover:opacity-90 transition-opacity w-full"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleAddToCart();
+                                }}
                             >
                                 <div className="bg-[#00C16E] text-white font-bold py-3 px-6 flex-grow flex items-center justify-center uppercase text-lg clip-path-button-left">
                                     ДОБАВИТЬ В КОРЗИНУ
@@ -579,7 +681,7 @@ const DigitalPrintingPage: React.FC = () => {
                                     {/* Маленький плюсик */}
                                     <span className="absolute top-3 right-3 text-[10px] font-bold z-10">+</span>
                                 </div>
-                            </div>
+                            </button>
                         </div>
                     </div>
 

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 // Импортируй свои Header и Footer
 import Header from "../../../../components/Header";
 import Footer from "../../../../components/Footer";
+import { useCart, CartItem } from "../../../../context/CartContext";
 
 // --- ТИПЫ ДАННЫХ ---
 type CategoryType = 'BANNER' | 'FILM' | 'PAPER' | 'CANVAS';
@@ -50,6 +51,12 @@ const WideFormatPage: React.FC = () => {
     const [deliveryAddress, setDeliveryAddress] = useState("");
     const [comments, setComments] = useState("");
     const [checkLayout, setCheckLayout] = useState(false);
+    
+    // Состояния для файлов
+    const [frontFile, setFrontFile] = useState<File | null>(null);
+    const [previewFile, setPreviewFile] = useState<File | null>(null);
+    
+    const { addItem } = useCart();
 
     // --- ДАННЫЕ МАТЕРИАЛОВ ---
     const bannerMaterials: Material[] = [
@@ -143,7 +150,80 @@ const WideFormatPage: React.FC = () => {
         // Сброс полей
         setWidth(""); setHeight(""); setQuantity("1");
         setSoldering(""); setEyelets(""); setValves(""); setIsCutting(false);
+        setDeliveryAddress(""); setComments(""); setCheckLayout(false);
+        // Сброс файлов
+        setFrontFile(null); setPreviewFile(null);
         window.scrollTo(0, 0);
+    };
+    
+    // Функция конвертации File в base64
+    const fileToBase64 = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = error => reject(error);
+        });
+    };
+    
+    // Функция добавления в корзину
+    const handleAddToCart = async () => {
+        if (!selectedMaterial) return;
+        
+        try {
+            const readyDate = new Date();
+            readyDate.setDate(readyDate.getDate() + 4);
+            const dateStr = readyDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+            const formattedDay = new Date().toLocaleDateString('ru-RU', { weekday: 'long' });
+            const dayStr = formattedDay.charAt(0).toUpperCase() + formattedDay.slice(1);
+            const timeStr = "15:00";
+            
+            // Конвертируем файлы в base64
+            let frontFileBase64: string | undefined;
+            let previewFileBase64: string | undefined;
+            
+            try {
+                if (frontFile) {
+                    frontFileBase64 = await fileToBase64(frontFile);
+                }
+                if (previewFile) {
+                    previewFileBase64 = await fileToBase64(previewFile);
+                }
+            } catch (fileError) {
+                console.error('Ошибка при конвертации файлов:', fileError);
+                alert('Ошибка при обработке файлов. Товар будет добавлен без файлов.');
+            }
+            
+            const cartItem: CartItem = {
+                id: `wide-${selectedMaterial.id}-${Date.now()}`,
+                type: 'WIDE_FORMAT',
+                format: `${width}x${height}м`,
+                quantity: parseInt(quantity) || 1,
+                basePrice: totalPrice,
+                specs: selectedMaterial.title,
+                totalPrice: totalPrice,
+                deliveryAddress: deliveryAddress || undefined,
+                comments: comments || undefined,
+                checkLayout: checkLayout || undefined,
+                readyDate: `${dayStr}, ${dateStr}`,
+                readyTime: timeStr,
+                // Файлы
+                frontFile: frontFileBase64,
+                previewFile: previewFileBase64,
+                frontFileName: frontFile?.name,
+                previewFileName: previewFile?.name,
+                frontFileSize: frontFile?.size,
+                previewFileSize: previewFile?.size,
+                frontFileType: frontFile?.type,
+                previewFileType: previewFile?.type,
+            };
+            
+            addItem(cartItem);
+            alert('Товар добавлен в корзину!');
+        } catch (error) {
+            console.error('Ошибка при добавлении в корзину:', error);
+            alert('Произошла ошибка при добавлении товара в корзину. Пожалуйста, попробуйте еще раз.');
+        }
     };
 
     // Калькулятор стоимости
@@ -334,12 +414,27 @@ const WideFormatPage: React.FC = () => {
                                 <span className="md:hidden font-bold uppercase text-sm mb-1">ЗАГРУЗИТЕ МАКЕТ</span>
                                 <div className="flex flex-col items-start gap-1">
                                     <label className="cursor-pointer">
-                                        <div className="border-2 border-[#006837] rounded bg-white px-3 py-1 flex items-center gap-2 hover:bg-gray-50 transition-colors w-fit min-w-[140px]">
+                                        <div className={`border-2 ${frontFile ? 'border-[#00C16E] bg-[#f0fff8]' : 'border-[#006837]'} rounded bg-white px-3 py-1 flex items-center gap-2 hover:bg-gray-50 transition-colors w-fit min-w-[140px]`}>
                                             <span className="text-xl font-bold text-[#006837] leading-none pb-1">📥</span>
-                                            <span className="font-bold uppercase text-[#006837] text-sm">ЗАГРУЗИТЬ</span>
+                                            <span className="font-bold uppercase text-[#006837] text-sm">
+                                                {frontFile ? '✓ ЗАГРУЖЕНО' : 'ЗАГРУЗИТЬ'}
+                                            </span>
                                         </div>
-                                        <input type="file" className="hidden" accept=".tiff,.tif" />
+                                        <input 
+                                            type="file" 
+                                            className="hidden" 
+                                            accept=".tiff,.tif"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) setFrontFile(file);
+                                            }}
+                                        />
                                     </label>
+                                    {frontFile && (
+                                        <span className="text-[9px] text-[#00C16E] font-semibold ml-1 block mt-1">
+                                            {frontFile.name}
+                                        </span>
+                                    )}
                                     <span className="text-[10px] uppercase text-[#006837] font-bold ml-1">ФОРМАТ TIFF</span>
                                 </div>
                             </div>
@@ -362,12 +457,27 @@ const WideFormatPage: React.FC = () => {
                                 <span className="md:hidden font-bold uppercase text-sm mb-1">ПРЕВЬЮ МАКЕТА</span>
                                 <div className="flex flex-col items-start gap-1">
                                     <label className="cursor-pointer">
-                                        <div className="border-2 border-[#006837] rounded bg-white px-3 py-1 flex items-center gap-2 hover:bg-gray-50 transition-colors w-fit min-w-[140px]">
+                                        <div className={`border-2 ${previewFile ? 'border-[#00C16E] bg-[#f0fff8]' : 'border-[#006837]'} rounded bg-white px-3 py-1 flex items-center gap-2 hover:bg-gray-50 transition-colors w-fit min-w-[140px]`}>
                                             <span className="text-xl font-bold text-[#006837] leading-none pb-1">📥</span>
-                                            <span className="font-bold uppercase text-[#006837] text-sm">ЗАГРУЗИТЬ</span>
+                                            <span className="font-bold uppercase text-[#006837] text-sm">
+                                                {previewFile ? '✓ ЗАГРУЖЕНО' : 'ЗАГРУЗИТЬ'}
+                                            </span>
                                         </div>
-                                        <input type="file" className="hidden" accept=".jpg,.jpeg" />
+                                        <input 
+                                            type="file" 
+                                            className="hidden" 
+                                            accept=".jpg,.jpeg"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) setPreviewFile(file);
+                                            }}
+                                        />
                                     </label>
+                                    {previewFile && (
+                                        <span className="text-[9px] text-[#00C16E] font-semibold ml-1 block mt-1">
+                                            {previewFile.name}
+                                        </span>
+                                    )}
                                     <span className="text-[10px] uppercase text-[#006837] font-bold ml-1">ФОРМАТ JPEG</span>
                                 </div>
                             </div>
@@ -445,10 +555,18 @@ const WideFormatPage: React.FC = () => {
                             </div>
 
                             {/* Кнопка Оформить заказ */}
-                            <button className="w-full flex h-12 rounded overflow-hidden group">
+                            <button 
+                                type="button"
+                                className="w-full flex h-12 rounded overflow-hidden group"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleAddToCart();
+                                }}
+                            >
                                 {/* Левая часть (Текст) */}
                                 <div className="bg-[#00C16E] hover:bg-[#00a860] text-white font-bold flex-grow flex items-center justify-center uppercase text-base transition-colors">
-                                    ОФОРМИТЬ ЗАКАЗ
+                                    ДОБАВИТЬ В КОРЗИНУ
                                 </div>
 
                                 {/* Разделитель и иконка */}

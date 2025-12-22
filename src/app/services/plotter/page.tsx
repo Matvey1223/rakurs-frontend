@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 // Импортируйте ваши Header и Footer
 import Header from "../../../../components/Header";
 import Footer from "../../../../components/Footer";
+import { useCart, CartItem } from "../../../../context/CartContext";
 
 // --- ТИПЫ ДАННЫХ ---
 type PlotterCategory = 'COLOR_FILM' | 'PRINT_CUT' | 'STICKERS';
@@ -74,6 +75,14 @@ const WideFormatPage: React.FC = () => {
     const [deliveryAddress, setDeliveryAddress] = useState("");
     const [comments, setComments] = useState("");
     const [sizeError, setSizeError] = useState<string | null>(null);
+    const [checkLayout, setCheckLayout] = useState(false);
+    
+    // Состояния для файлов
+    const [frontFile, setFrontFile] = useState<File | null>(null);
+    const [cuttingFile, setCuttingFile] = useState<File | null>(null);
+    const [previewFile, setPreviewFile] = useState<File | null>(null);
+    
+    const { addItem } = useCart();
 
     // --- БАЗА ДАННЫХ ---
     const colorFilmMats: Material[] = [
@@ -119,8 +128,89 @@ const WideFormatPage: React.FC = () => {
         setViewState('ORDER_CONFIG');
         setWidth(""); setHeight(""); setQuantity("1");
         setIncludeWeeding(false); setColorCode("");
+        setDeliveryAddress(""); setComments(""); setCheckLayout(false);
         setSizeError(null);
+        // Сброс файлов
+        setFrontFile(null); setCuttingFile(null); setPreviewFile(null);
         window.scrollTo(0, 0);
+    };
+    
+    // Функция конвертации File в base64
+    const fileToBase64 = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = error => reject(error);
+        });
+    };
+    
+    // Функция добавления в корзину
+    const handleAddToCart = async () => {
+        if (!selectedMaterial || sizeError) return;
+        
+        try {
+            const readyDate = new Date();
+            readyDate.setDate(readyDate.getDate() + 4);
+            const dateStr = readyDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+            const formattedDay = new Date().toLocaleDateString('ru-RU', { weekday: 'long' });
+            const dayStr = formattedDay.charAt(0).toUpperCase() + formattedDay.slice(1);
+            const timeStr = "15:00";
+            
+            // Конвертируем файлы в base64
+            let frontFileBase64: string | undefined;
+            let cuttingFileBase64: string | undefined;
+            let previewFileBase64: string | undefined;
+            
+            try {
+                if (frontFile) {
+                    frontFileBase64 = await fileToBase64(frontFile);
+                }
+                if (cuttingFile) {
+                    cuttingFileBase64 = await fileToBase64(cuttingFile);
+                }
+                if (previewFile) {
+                    previewFileBase64 = await fileToBase64(previewFile);
+                }
+            } catch (fileError) {
+                console.error('Ошибка при конвертации файлов:', fileError);
+                alert('Ошибка при обработке файлов. Товар будет добавлен без файлов.');
+            }
+            
+            const cartItem: CartItem = {
+                id: `plotter-${selectedMaterial.id}-${Date.now()}`,
+                type: 'PLOTTER',
+                format: `${width}x${height}м`,
+                quantity: parseInt(quantity) || 1,
+                basePrice: totalPrice,
+                specs: selectedMaterial.title,
+                totalPrice: totalPrice,
+                deliveryAddress: deliveryAddress || undefined,
+                comments: comments || undefined,
+                checkLayout: checkLayout || undefined,
+                readyDate: `${dayStr}, ${dateStr}`,
+                readyTime: timeStr,
+                // Файлы
+                frontFile: frontFileBase64,
+                backFile: cuttingFileBase64, // Используем backFile для контура подрезки
+                previewFile: previewFileBase64,
+                frontFileName: frontFile?.name,
+                backFileName: cuttingFile?.name,
+                previewFileName: previewFile?.name,
+                frontFileSize: frontFile?.size,
+                backFileSize: cuttingFile?.size,
+                previewFileSize: previewFile?.size,
+                frontFileType: frontFile?.type,
+                backFileType: cuttingFile?.type,
+                previewFileType: previewFile?.type,
+            };
+            
+            addItem(cartItem);
+            alert('Товар добавлен в корзину!');
+        } catch (error) {
+            console.error('Ошибка при добавлении в корзину:', error);
+            alert('Произошла ошибка при добавлении товара в корзину. Пожалуйста, попробуйте еще раз.');
+        }
     };
 
     // ВАЛИДАЦИЯ
@@ -305,32 +395,91 @@ const WideFormatPage: React.FC = () => {
                             <div className="space-y-4 w-full max-w-[500px]">
                                 {/* Инпуты загрузки... (сокращено, аналогично предыдущим версиям) */}
                                 <div className="flex flex-col gap-1">
-                                    <label className="cursor-pointer border-2 border-[#006837] rounded-md bg-white px-4 py-1 flex items-center gap-2 w-fit hover:bg-green-50 transition-colors">
-                                        <span className="text-xl font-bold pb-1 text-[#006837]">📥</span>
-                                        <span className="font-bold uppercase text-sm text-[#006837]">ЗАГРУЗИТЬ</span>
-                                        <input type="file" className="hidden" />
+                                    <label className="cursor-pointer">
+                                        <div className={`border-2 ${frontFile ? 'border-[#00C16E] bg-[#f0fff8]' : 'border-[#006837]'} rounded bg-white px-4 py-1 flex items-center gap-2 hover:bg-green-50 transition-colors w-fit min-w-[140px]`}>
+                                            <span className="text-xl font-bold pb-1 text-[#006837]">📥</span>
+                                            <span className="font-bold uppercase text-sm text-[#006837]">
+                                                {frontFile ? '✓ ЗАГРУЖЕНО' : 'ЗАГРУЗИТЬ'}
+                                            </span>
+                                        </div>
+                                        <input 
+                                            type="file" 
+                                            className="hidden"
+                                            accept=".tiff,.tif,.eps"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) setFrontFile(file);
+                                            }}
+                                        />
                                     </label>
                                     <span className="text-[9px] font-bold text-[#006837] uppercase">ФОРМАТ TIFF</span>
+                                    {frontFile && (
+                                        <span className="text-[9px] text-[#00C16E] font-semibold">
+                                            {frontFile.name}
+                                        </span>
+                                    )}
                                 </div>
                                 <div className="flex flex-col gap-1">
-                                    <label className="cursor-pointer border-2 border-[#006837] rounded-md bg-white px-4 py-1 flex items-center gap-2 w-fit hover:bg-green-50 transition-colors">
-                                        <span className="text-xl font-bold pb-1 text-[#006837]">📥</span>
-                                        <span className="font-bold uppercase text-sm text-[#006837]">ЗАГРУЗИТЬ</span>
-                                        <input type="file" className="hidden" />
+                                    <label className="cursor-pointer">
+                                        <div className={`border-2 ${cuttingFile ? 'border-[#00C16E] bg-[#f0fff8]' : 'border-[#006837]'} rounded bg-white px-4 py-1 flex items-center gap-2 hover:bg-green-50 transition-colors w-fit min-w-[140px]`}>
+                                            <span className="text-xl font-bold pb-1 text-[#006837]">📥</span>
+                                            <span className="font-bold uppercase text-sm text-[#006837]">
+                                                {cuttingFile ? '✓ ЗАГРУЖЕНО' : 'ЗАГРУЗИТЬ'}
+                                            </span>
+                                        </div>
+                                        <input 
+                                            type="file" 
+                                            className="hidden"
+                                            accept=".eps"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) setCuttingFile(file);
+                                            }}
+                                        />
                                     </label>
                                     <span className="text-[9px] font-bold text-[#006837] uppercase">ФОРМАТ EPS</span>
+                                    {cuttingFile && (
+                                        <span className="text-[9px] text-[#00C16E] font-semibold">
+                                            {cuttingFile.name}
+                                        </span>
+                                    )}
                                 </div>
                                 <div className="flex flex-col gap-1">
-                                    <label className="cursor-pointer border-2 border-[#006837] rounded-md bg-white px-4 py-1 flex items-center gap-2 w-fit hover:bg-green-50 transition-colors">
-                                        <span className="text-xl font-bold pb-1 text-[#006837]">📥</span>
-                                        <span className="font-bold uppercase text-sm text-[#006837]">ЗАГРУЗИТЬ</span>
-                                        <input type="file" className="hidden" />
+                                    <label className="cursor-pointer">
+                                        <div className={`border-2 ${previewFile ? 'border-[#00C16E] bg-[#f0fff8]' : 'border-[#006837]'} rounded bg-white px-4 py-1 flex items-center gap-2 hover:bg-green-50 transition-colors w-fit min-w-[140px]`}>
+                                            <span className="text-xl font-bold pb-1 text-[#006837]">📥</span>
+                                            <span className="font-bold uppercase text-sm text-[#006837]">
+                                                {previewFile ? '✓ ЗАГРУЖЕНО' : 'ЗАГРУЗИТЬ'}
+                                            </span>
+                                        </div>
+                                        <input 
+                                            type="file" 
+                                            className="hidden"
+                                            accept=".jpg,.jpeg"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) setPreviewFile(file);
+                                            }}
+                                        />
                                     </label>
                                     <span className="text-[9px] font-bold text-[#006837] uppercase">ФОРМАТ JPEG</span>
+                                    {previewFile && (
+                                        <span className="text-[9px] text-[#00C16E] font-semibold">
+                                            {previewFile.name}
+                                        </span>
+                                    )}
                                 </div>
                                 <div><input type="text" value={deliveryAddress} onChange={e => setDeliveryAddress(e.target.value)} className="border-2 border-[#006837] rounded-xl w-full h-10 px-3 focus:outline-none" /></div>
                                 <div><input value={comments} onChange={e => setComments(e.target.value)} className="border-2 border-[#006837] rounded-xl w-full h-10 px-3 focus:outline-none" /></div>
-                                <div className="flex items-center gap-2 pt-2"><input type="checkbox" className="w-5 h-5 border-2 border-[#006837] rounded accent-[#006837]" /><span className="text-xs font-bold text-black">Проверить макет на соответствие требований к печати</span></div>
+                                <div className="flex items-center gap-2 pt-2">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={checkLayout}
+                                        onChange={(e) => setCheckLayout(e.target.checked)}
+                                        className="w-5 h-5 border-2 border-[#006837] rounded accent-[#006837]" 
+                                    />
+                                    <span className="text-xs font-bold text-black">Проверить макет на соответствие требований к печати</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -358,15 +507,24 @@ const WideFormatPage: React.FC = () => {
                             </div>
 
                             {/* Кнопка */}
-                            <div className={`flex rounded-md overflow-hidden cursor-pointer transition-opacity h-12 lg:w-1/3 max-w-sm ${sizeError ? 'opacity-50 pointer-events-none' : 'hover:opacity-90'}`}>
+                            <button
+                                type="button"
+                                disabled={!!sizeError}
+                                className={`flex rounded-md overflow-hidden transition-opacity h-12 lg:w-1/3 max-w-sm ${sizeError ? 'opacity-50 pointer-events-none' : 'hover:opacity-90 cursor-pointer'}`}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleAddToCart();
+                                }}
+                            >
                                 <div className={`bg-[#00C16E] text-white font-bold px-4 flex-grow flex items-center justify-center uppercase text-lg text-center ${sizeError ? 'bg-gray-400' : ''}`}>
-                                    {sizeError ? "НЕВЕРНЫЙ РАЗМЕР" : "ОФОРМИТЬ ЗАКАЗ"}
+                                    {sizeError ? "НЕВЕРНЫЙ РАЗМЕР" : "ДОБАВИТЬ В КОРЗИНУ"}
                                 </div>
                                 <div className={`bg-[#006837] text-white w-14 flex items-center justify-center relative ${sizeError ? 'bg-gray-600' : ''}`}>
                                     <div className={`absolute left-0 top-0 bottom-0 w-4 transform -skew-x-12 origin-top-left ${sizeError ? 'bg-gray-400' : 'bg-[#00C16E]'}`}></div>
                                     <span className="text-2xl z-10 relative">🛒</span>
                                 </div>
-                            </div>
+                            </button>
                         </div>
                     </div>
 

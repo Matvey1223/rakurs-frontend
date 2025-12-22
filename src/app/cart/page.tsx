@@ -86,6 +86,30 @@ const CartPage: React.FC = () => {
                             Готовность: {item.readyDate}, {item.readyTime}
                           </p>
                         )}
+                        {/* Информация о файлах */}
+                        {(item.frontFile || item.backFile || item.previewFile) && (
+                          <div className="mt-3 pt-3 border-t border-gray-200">
+                            <p className="text-xs font-semibold text-[#006837] mb-1">Загруженные файлы:</p>
+                            {item.frontFile && (
+                              <p className="text-xs text-gray-600">
+                                ✓ Лицевая сторона: {item.frontFileName || 'файл'} 
+                                {item.frontFileSize && ` (${(item.frontFileSize / 1024).toFixed(1)} KB)`}
+                              </p>
+                            )}
+                            {item.backFile && (
+                              <p className="text-xs text-gray-600">
+                                ✓ Оборотная сторона: {item.backFileName || 'файл'}
+                                {item.backFileSize && ` (${(item.backFileSize / 1024).toFixed(1)} KB)`}
+                              </p>
+                            )}
+                            {item.previewFile && (
+                              <p className="text-xs text-gray-600">
+                                ✓ Превью: {item.previewFileName || 'файл'}
+                                {item.previewFileSize && ` (${(item.previewFileSize / 1024).toFixed(1)} KB)`}
+                              </p>
+                            )}
+                          </div>
+                        )}
                         {item.comments && (
                           <p className="text-xs text-gray-500 mt-2 italic">
                             Комментарий: {item.comments}

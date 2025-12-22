@@ -20,10 +20,20 @@ export interface CartItem {
   deliveryAddress?: string;
   comments?: string;
   checkLayout?: boolean;
-  // Файлы (в реальном приложении это будут File объекты)
-  frontFile?: string;
-  backFile?: string;
-  previewFile?: string;
+  // Файлы - хранятся как base64 для localStorage
+  frontFile?: string; // base64 строка для localStorage
+  backFile?: string; // base64 строка для localStorage
+  previewFile?: string; // base64 строка для localStorage
+  // Метаданные файлов (имя, размер, тип)
+  frontFileName?: string;
+  backFileName?: string;
+  previewFileName?: string;
+  frontFileSize?: number;
+  backFileSize?: number;
+  previewFileSize?: number;
+  frontFileType?: string;
+  backFileType?: string;
+  previewFileType?: string;
   // Дата готовности
   readyDate?: string;
   readyTime?: string;

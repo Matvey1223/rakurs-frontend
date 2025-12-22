@@ -19,19 +19,140 @@ const CheckoutPage: React.FC = () => {
 
   const total = getTotalPrice();
 
+  // Функция конвертации base64 в Blob
+  const base64ToBlob = (base64: string, mimeType: string): Blob => {
+    const byteCharacters = atob(base64.split(',')[1]);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    return new Blob([byteArray], { type: mimeType });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Здесь будет отправка данных на сервер
-    // Пока просто симулируем отправку
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      // Подготавливаем данные для отправки
+      const orderData = {
+        customer: customerData,
+        items: items.map(item => {
+          const itemData: any = {
+            id: item.id,
+            type: item.type,
+            format: item.format,
+            quantity: item.quantity,
+            basePrice: item.basePrice,
+            specs: item.specs,
+            totalPrice: item.totalPrice,
+            creasing: item.creasing,
+            folding: item.folding,
+            extraCut: item.extraCut,
+            holes: item.holes,
+            rounding: item.rounding,
+            eyelets: item.eyelets,
+            eyeletColor: item.eyeletColor,
+            deliveryAddress: item.deliveryAddress,
+            comments: item.comments,
+            checkLayout: item.checkLayout,
+            readyDate: item.readyDate,
+            readyTime: item.readyTime,
+          };
 
-    // Очищаем корзину и перенаправляем на страницу благодарности
-    clearCart();
-    setIsSubmitting(false);
-    alert('Заказ успешно оформлен! Спасибо за ваш заказ.');
-    router.push('/');
+          // Добавляем файлы (можно отправить как base64 или как File через FormData)
+          // Вариант 1: Отправка base64 напрямую (если бэкенд принимает)
+          if (item.frontFile) {
+            itemData.frontFile = item.frontFile;
+            itemData.frontFileName = item.frontFileName;
+            itemData.frontFileSize = item.frontFileSize;
+            itemData.frontFileType = item.frontFileType;
+          }
+          if (item.backFile) {
+            itemData.backFile = item.backFile;
+            itemData.backFileName = item.backFileName;
+            itemData.backFileSize = item.backFileSize;
+            itemData.backFileType = item.backFileType;
+          }
+          if (item.previewFile) {
+            itemData.previewFile = item.previewFile;
+            itemData.previewFileName = item.previewFileName;
+            itemData.previewFileSize = item.previewFileSize;
+            itemData.previewFileType = item.previewFileType;
+          }
+
+          return itemData;
+        }),
+        totalPrice: total,
+      };
+
+      // Отправка на бэкенд
+      // Вариант 1: JSON с base64 (если бэкенд принимает base64)
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData),
+      });
+
+      // Вариант 2: FormData с файлами (если бэкенд требует multipart/form-data)
+      // Раскомментируйте этот код, если нужен вариант с FormData:
+      /*
+      const formData = new FormData();
+      formData.append('customer', JSON.stringify(customerData));
+      formData.append('totalPrice', total.toString());
+      
+      items.forEach((item, index) => {
+        formData.append(`items[${index}][id]`, item.id);
+        formData.append(`items[${index}][type]`, item.type);
+        formData.append(`items[${index}][format]`, item.format);
+        formData.append(`items[${index}][quantity]`, item.quantity.toString());
+        formData.append(`items[${index}][basePrice]`, item.basePrice.toString());
+        formData.append(`items[${index}][specs]`, item.specs);
+        formData.append(`items[${index}][totalPrice]`, item.totalPrice.toString());
+        
+        if (item.frontFile) {
+          const blob = base64ToBlob(item.frontFile, item.frontFileType || 'image/tiff');
+          const file = new File([blob], item.frontFileName || 'front.tiff', { type: item.frontFileType || 'image/tiff' });
+          formData.append(`items[${index}][frontFile]`, file);
+        }
+        if (item.backFile) {
+          const blob = base64ToBlob(item.backFile, item.backFileType || 'image/tiff');
+          const file = new File([blob], item.backFileName || 'back.tiff', { type: item.backFileType || 'image/tiff' });
+          formData.append(`items[${index}][backFile]`, file);
+        }
+        if (item.previewFile) {
+          const blob = base64ToBlob(item.previewFile, item.previewFileType || 'image/jpeg');
+          const file = new File([blob], item.previewFileName || 'preview.jpg', { type: item.previewFileType || 'image/jpeg' });
+          formData.append(`items[${index}][previewFile]`, file);
+        }
+      });
+
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        body: formData,
+      });
+      */
+
+      if (!response.ok) {
+        throw new Error('Ошибка при отправке заказа');
+      }
+
+      const result = await response.json();
+      console.log('Заказ успешно отправлен:', result);
+
+      // Очищаем корзину и перенаправляем на страницу благодарности
+      clearCart();
+      setIsSubmitting(false);
+      alert('Заказ успешно оформлен! Спасибо за ваш заказ.');
+      router.push('/');
+    } catch (error) {
+      console.error('Ошибка при оформлении заказа:', error);
+      setIsSubmitting(false);
+      alert('Произошла ошибка при оформлении заказа. Пожалуйста, попробуйте еще раз.');
+    }
   };
 
   if (items.length === 0) {
@@ -211,6 +332,30 @@ const CheckoutPage: React.FC = () => {
                           <p className="text-xs text-[#00C16E] mt-2 font-semibold">
                             Готовность: {item.readyDate}, {item.readyTime}
                           </p>
+                        )}
+                        {/* Информация о файлах */}
+                        {(item.frontFile || item.backFile || item.previewFile) && (
+                          <div className="mt-2 pt-2 border-t border-gray-200">
+                            <p className="text-xs font-semibold text-[#006837] mb-1">Файлы:</p>
+                            {item.frontFile && (
+                              <p className="text-xs text-gray-600">
+                                ✓ {item.frontFileName || 'Лицевая сторона'}
+                                {item.frontFileSize && ` (${(item.frontFileSize / 1024).toFixed(1)} KB)`}
+                              </p>
+                            )}
+                            {item.backFile && (
+                              <p className="text-xs text-gray-600">
+                                ✓ {item.backFileName || 'Оборотная сторона'}
+                                {item.backFileSize && ` (${(item.backFileSize / 1024).toFixed(1)} KB)`}
+                              </p>
+                            )}
+                            {item.previewFile && (
+                              <p className="text-xs text-gray-600">
+                                ✓ {item.previewFileName || 'Превью'}
+                                {item.previewFileSize && ` (${(item.previewFileSize / 1024).toFixed(1)} KB)`}
+                              </p>
+                            )}
+                          </div>
                         )}
                       </div>
                       <span className="font-bold text-[#006837] ml-2">
