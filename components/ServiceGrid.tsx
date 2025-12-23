@@ -1,14 +1,22 @@
 import React from 'react';
 import { CATEGORIES } from '../constants';
 
-const ServiceGrid: React.FC = () => {
+interface ServiceGridProps {
+    selectedId?: string | null;
+    onSelect?: (id: string) => void;
+}
+
+const ServiceGrid: React.FC<ServiceGridProps> = ({ selectedId, onSelect }) => {
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {CATEGORIES.map((cat) => (
                 <a
                     key={cat.id}
                     href={`/services/${cat.id}`}
-                    className="cursor-pointer group flex flex-col items-center justify-center p-10 rounded-2xl border-2 border-gray-200 bg-white transition-all duration-300 hover:border-[#00C16E]/30 hover:shadow-md"
+                    onClick={() => onSelect?.(cat.id)}
+                    className={`cursor-pointer group flex flex-col items-center justify-center p-10 rounded-2xl border-2 bg-white transition-all duration-300 hover:border-[#00C16E]/30 hover:shadow-md ${
+                        selectedId === cat.id ? "border-[#00C16E]" : "border-gray-200"
+                    }`}
                 >
                     <div className="mb-6 text-[#006837] transition-colors duration-300 group-hover:text-[#00C16E]">
                         {cat.icon}
