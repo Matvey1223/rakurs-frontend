@@ -21,6 +21,18 @@ interface Material {
     limitWidth: number;
     limitHeight?: number;
     isUV?: boolean;
+    stickerPriceTable?: StickerPriceTable;
+}
+
+interface StickerPriceRow {
+    label: string;
+    sizeLabel: string;
+    values: number[];
+}
+
+interface StickerPriceTable {
+    columns: number[];
+    rows: StickerPriceRow[];
 }
 
 // --- ДАННЫЕ ПАЛИТРЫ ---
@@ -72,6 +84,12 @@ const WideFormatPage: React.FC = () => {
     const [quantity, setQuantity] = useState<string>("1");
     const [includeWeeding, setIncludeWeeding] = useState<boolean>(false);
     const [colorCode, setColorCode] = useState<string>("");
+    const [stickerSelection, setStickerSelection] = useState<{
+        rowLabel: string;
+        sizeLabel: string;
+        quantity: number;
+        price: number;
+    } | null>(null);
     const [deliveryAddress, setDeliveryAddress] = useState("");
     const [comments, setComments] = useState("");
     const [sizeError, setSizeError] = useState<string | null>(null);
@@ -97,11 +115,93 @@ const WideFormatPage: React.FC = () => {
         { id: "print_holographic", title: "ПЕЧАТЬ ГОЛОГРАФИЧЕСКАЯ ПЛЕНКА", category: 'PRINT_CUT', image: "https://placehold.co/400x300/white/006837?text=Print+Holo", priceBase: 1400, priceFull: 2200, hasColorPalette: false, maxWidthInfo: "1,2м", limitWidth: 1.2 }
     ];
 
+    const stickerPriceColumns = [50, 100, 250, 500, 1000];
+
     const stickersMats: Material[] = [
-        { id: "st_orajet", title: "ПЕЧАТЬ ОРАДЖЕТ", category: 'STICKERS', image: "https://placehold.co/400x300/white/006837?text=Sticker+Orajet", priceBase: 1150, priceFull: 2000, hasColorPalette: false, maxWidthInfo: "1,2м", limitWidth: 1.2 },
-        { id: "st_oracal", title: "ПЕЧАТЬ ОРАКАЛ", category: 'STICKERS', image: "https://placehold.co/400x300/white/006837?text=Sticker+Oracal", priceBase: 1250, priceFull: 2100, hasColorPalette: false, maxWidthInfo: "1,2м", limitWidth: 1.2 },
-        { id: "st_holo", title: "ПЕЧАТЬ ГОЛОГРАФИЧЕСКАЯ ПЛЕНКА", category: 'STICKERS', image: "https://placehold.co/400x300/white/006837?text=Sticker+Holo", priceBase: 1400, priceFull: 2400, hasColorPalette: false, maxWidthInfo: "1,2м", limitWidth: 1.2 },
-        { id: "st_uv_complex", title: "УФ ПЕЧАТЬ ОРАДЖЕТ / ОРАКАЛ СЕРИИ 641 / ГОЛОГРАФИЧЕСКАЯ ПЛЕНКА", category: 'STICKERS', image: "https://placehold.co/400x300/white/006837?text=UV+Mix", priceBase: 1500, priceFull: 2500, hasColorPalette: false, maxWidthInfo: "уф по полю: 850х550мм", limitWidth: 0.85, limitHeight: 0.55, isUV: true }
+        {
+            id: "st_orajet",
+            title: "ПЕЧАТЬ ОРАДЖЕТ",
+            category: 'STICKERS',
+            image: "https://placehold.co/400x300/white/006837?text=Sticker+Orajet",
+            priceBase: 1150,
+            priceFull: 2000,
+            hasColorPalette: false,
+            maxWidthInfo: "1,2м",
+            limitWidth: 1.2,
+            stickerPriceTable: {
+                columns: stickerPriceColumns,
+                rows: [
+                    { label: "ОРАДЖЕТ", sizeLabel: "40x40мм", values: [350, 500, 1125, 1850, 3300] },
+                    { label: "ОРАДЖЕТ", sizeLabel: "30x30мм", values: [500, 700, 1525, 2450, 4300] },
+                    { label: "ОРАДЖЕТ", sizeLabel: "20x20мм", values: [700, 1000, 1750, 2700, 4800] },
+                    { label: "ОРАДЖЕТ", sizeLabel: "10x10мм", values: [900, 1100, 1900, 3050, 5500] },
+                ]
+            }
+        },
+        {
+            id: "st_oracal",
+            title: "ПЕЧАТЬ ОРАКАЛ",
+            category: 'STICKERS',
+            image: "https://placehold.co/400x300/white/006837?text=Sticker+Oracal",
+            priceBase: 1250,
+            priceFull: 2100,
+            hasColorPalette: false,
+            maxWidthInfo: "1,2м",
+            limitWidth: 1.2,
+            stickerPriceTable: {
+                columns: stickerPriceColumns,
+                rows: [
+                    { label: "ОРАКАЛ 641", sizeLabel: "40x40мм", values: [450, 800, 1125, 1850, 3300] },
+                    { label: "ОРАКАЛ 641", sizeLabel: "30x30мм", values: [600, 950, 1525, 2450, 4300] },
+                    { label: "ОРАКАЛ 641", sizeLabel: "20x20мм", values: [800, 1150, 1750, 2700, 4800] },
+                    { label: "ОРАКАЛ 641", sizeLabel: "10x10мм", values: [1000, 1300, 2300, 3200, 6500] },
+                ]
+            }
+        },
+        {
+            id: "st_holo",
+            title: "ПЕЧАТЬ ГОЛОГРАФИЧЕСКАЯ ПЛЕНКА",
+            category: 'STICKERS',
+            image: "https://placehold.co/400x300/white/006837?text=Sticker+Holo",
+            priceBase: 1400,
+            priceFull: 2400,
+            hasColorPalette: false,
+            maxWidthInfo: "1,2м",
+            limitWidth: 1.2,
+            stickerPriceTable: {
+                columns: stickerPriceColumns,
+                rows: [
+                    { label: "ГОЛОГРАФИЧЕСКАЯ", sizeLabel: "40x40мм", values: [400, 750, 1000, 1650, 3100] },
+                    { label: "ГОЛОГРАФИЧЕСКАЯ", sizeLabel: "30x30мм", values: [550, 900, 1400, 2250, 4100] },
+                    { label: "ГОЛОГРАФИЧЕСКАЯ", sizeLabel: "20x20мм", values: [750, 1050, 1600, 2600, 4500] },
+                    { label: "ГОЛОГРАФИЧЕСКАЯ", sizeLabel: "10x10мм", values: [950, 1200, 2100, 3000, 6300] },
+                ]
+            }
+        },
+        {
+            id: "st_uv_complex",
+            title: "УФ ПЕЧАТЬ ОРАДЖЕТ / ОРАКАЛ СЕРИИ 641 / ГОЛОГРАФИЧЕСКАЯ ПЛЕНКА",
+            category: 'STICKERS',
+            image: "https://placehold.co/400x300/white/006837?text=UV+Mix",
+            priceBase: 1500,
+            priceFull: 2500,
+            hasColorPalette: false,
+            maxWidthInfo: "уф по полю: 850х550мм",
+            limitWidth: 0.85,
+            limitHeight: 0.55,
+            isUV: true,
+            stickerPriceTable: {
+                columns: stickerPriceColumns,
+                rows: [
+                    { label: "ОРАКАЛ 641 + УФ ПЕЧАТЬ", sizeLabel: "40x40мм", values: [450, 800, 1875, 3500, 5000] },
+                    { label: "ОРАКАЛ 641 + УФ ПЕЧАТЬ", sizeLabel: "30x30мм", values: [475, 850, 2000, 3750, 5500] },
+                    { label: "ОРАКАЛ 641 + УФ ПЕЧАТЬ", sizeLabel: "20x20мм", values: [550, 1000, 2375, 4500, 7000] },
+                    { label: "ОРАКАЛ 641 + УФ ПЕЧАТЬ", sizeLabel: "10x10мм", values: [575, 1050, 2500, 4750, 7500] },
+                    { label: "ГОЛОГРАФИЧЕСКАЯ + УФ ПЕЧАТЬ", sizeLabel: "40x40мм", values: [650, 1100, 2475, 4600, 7200] },
+                    { label: "ГОЛОГРАФИЧЕСКАЯ + УФ ПЕЧАТЬ", sizeLabel: "30x30мм", values: [750, 1300, 2600, 5000, 7700] },
+                ]
+            }
+        }
     ];
 
     // --- ЛОГИКА ---
@@ -128,6 +228,7 @@ const WideFormatPage: React.FC = () => {
         setViewState('ORDER_CONFIG');
         setWidth(""); setHeight(""); setQuantity("1");
         setIncludeWeeding(false); setColorCode("");
+        setStickerSelection(null);
         setDeliveryAddress(""); setComments(""); setCheckLayout(false);
         setSizeError(null);
         // Сброс файлов
@@ -147,7 +248,9 @@ const WideFormatPage: React.FC = () => {
     
     // Функция добавления в корзину
     const handleAddToCart = async () => {
-        if (!selectedMaterial || sizeError) return;
+        if (!selectedMaterial) return;
+        if (activeCategory !== 'STICKERS' && sizeError) return;
+        if (activeCategory === 'STICKERS' && !stickerSelection) return;
         
         try {
             const readyDate = new Date();
@@ -177,13 +280,23 @@ const WideFormatPage: React.FC = () => {
                 alert('Ошибка при обработке файлов. Товар будет добавлен без файлов.');
             }
             
+            const orderFormat = activeCategory === 'STICKERS'
+                ? (stickerSelection?.sizeLabel || '')
+                : `${width}x${height}м`;
+            const orderSpecs = activeCategory === 'STICKERS' && stickerSelection
+                ? `${selectedMaterial.title} / ${stickerSelection.rowLabel}`
+                : selectedMaterial.title;
+            const finalQuantity = activeCategory === 'STICKERS' && stickerSelection
+                ? stickerSelection.quantity
+                : (parseInt(quantity) || 1);
+
             const cartItem: CartItem = {
                 id: `plotter-${selectedMaterial.id}-${Date.now()}`,
                 type: 'PLOTTER',
-                format: `${width}x${height}м`,
-                quantity: parseInt(quantity) || 1,
+                format: orderFormat,
+                quantity: finalQuantity,
                 basePrice: totalPrice,
-                specs: selectedMaterial.title,
+                specs: orderSpecs,
                 totalPrice: totalPrice,
                 deliveryAddress: deliveryAddress || undefined,
                 comments: comments || undefined,
@@ -243,7 +356,11 @@ const WideFormatPage: React.FC = () => {
     }, [width, height, selectedMaterial]);
 
     const calculateTotal = () => {
-        if (!selectedMaterial || sizeError) return 0;
+        if (!selectedMaterial) return 0;
+        if (activeCategory !== 'STICKERS' && sizeError) return 0;
+        if (activeCategory === 'STICKERS') {
+            return stickerSelection ? stickerSelection.price : 0;
+        }
         const w = parseFloat(width.replace(',', '.')) || 0;
         const h = parseFloat(height.replace(',', '.')) || 0;
         const qty = parseInt(quantity) || 0;
@@ -252,8 +369,24 @@ const WideFormatPage: React.FC = () => {
         return Math.round(area * pricePerSqM);
     };
 
+    const handleStickerPriceSelect = (row: StickerPriceRow, colIndex: number) => {
+        if (!selectedMaterial?.stickerPriceTable) return;
+        const qty = selectedMaterial.stickerPriceTable.columns[colIndex];
+        const price = row.values[colIndex];
+        setStickerSelection({
+            rowLabel: row.label,
+            sizeLabel: row.sizeLabel,
+            quantity: qty,
+            price
+        });
+        setQuantity(String(qty));
+    };
+
     const totalPrice = calculateTotal();
-    const pricePerUnit = quantity && parseInt(quantity) > 0 ? (totalPrice / parseInt(quantity)).toFixed(0) : 0;
+    const orderQuantity = activeCategory === 'STICKERS' && stickerSelection
+        ? stickerSelection.quantity
+        : (parseInt(quantity) || 0);
+    const pricePerUnit = orderQuantity > 0 ? (totalPrice / orderQuantity).toFixed(0) : 0;
 
     const readyDate = new Date();
     readyDate.setDate(readyDate.getDate() + 4);
@@ -268,17 +401,20 @@ const WideFormatPage: React.FC = () => {
             : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12 items-start";
 
         return (
-            <div className={`${gridClass} animate-fade-in`}>
-                {materials.map((mat) => (
-                    <div key={mat.id} onClick={() => handleMaterialSelect(mat)} className="cursor-pointer group flex flex-col w-full">
-                        <div className="rounded-[20px] border border-black overflow-hidden aspect-square mb-3 relative bg-white shadow-sm group-hover:shadow-md transition-shadow">
-                            <img src={mat.image} alt={mat.title} className="w-full h-full object-cover" />
+            <div className="flex flex-col gap-10 animate-fade-in">
+                <div className={gridClass}>
+                    {materials.map((mat) => (
+                        <div key={mat.id} onClick={() => handleMaterialSelect(mat)} className="cursor-pointer group flex flex-col w-full">
+                            <div className="rounded-[20px] border border-black overflow-hidden aspect-square mb-3 relative bg-white shadow-sm group-hover:shadow-md transition-shadow">
+                                <img src={mat.image} alt={mat.title} className="w-full h-full object-cover" />
+                            </div>
+                            <h3 className="font-bold text-[#006837] uppercase text-sm leading-tight max-w-[240px]">
+                                {mat.title.includes('/') ? mat.title.split(' / ').map((t, i) => <div key={i}>{t}{i < mat.title.split(' / ').length -1 && ' /'}</div>) : mat.title}
+                            </h3>
                         </div>
-                        <h3 className="font-bold text-[#006837] uppercase text-sm leading-tight max-w-[240px]">
-                            {mat.title.includes('/') ? mat.title.split(' / ').map((t, i) => <div key={i}>{t}{i < mat.title.split(' / ').length -1 && ' /'}</div>) : mat.title}
-                        </h3>
-                    </div>
-                ))}
+                    ))}
+                </div>
+                {activeCategory === 'STICKERS' && renderStickerNotes()}
             </div>
         );
     };
@@ -298,15 +434,269 @@ const WideFormatPage: React.FC = () => {
                 ))}
             </div>
             <div className="bg-[#D60000] text-white flex flex-col justify-center items-center px-4 py-2 ml-2 max-w-[200px] shrink-0 h-auto self-stretch">
-                <div className="text-3xl font-bold mb-1 leading-none">!ВНИМАНИЕ!</div>
+                <div className="text-2xl font-bold mb-1 leading-none">!ВНИМАНИЕ!</div>
                 <div className="text-xs font-bold leading-tight text-center">ЦВЕТА<br/>ПРЕДСТАВЛЕННЫЕ<br/>В РАСКЛАДКЕ -<br/>ОРИЕНТИРОВОЧНЫЕ!</div>
             </div>
         </div>
     );
 
+    const renderStickerNotes = () => (
+        <div
+            className="w-full bg-[#006837] text-white py-6 px-8 md:px-12 text-sm font-medium leading-relaxed uppercase"
+            style={{ clipPath: "polygon(40px 0, 100% 0, 100% 100%, 40px 100%, 0 50%)" }}
+        >
+            <span className="text-[#FFD700] font-bold">ВАЖНО! </span>
+            МАКЕТ ПРИНИМАЕТСЯ К ПЕЧАТИ В ФОРМАТЕ TIFF, РАЗМЕР 1:1, ЦВЕТОВОЙ МОДЕЛИ CMYK, КАЧЕСТВО МАКЕТА 600 dpi, КОНТУР РЕЗА ПРИНИМАЕТСЯ К ПЕЧАТИ В ФОРМАТЕ EPS, РАЗМЕР 1:1, ВСЕ ЭЛЕМЕНТЫ В КРИВЫХ, БЕЗ ПРОЗРАЧНОСТИ, ЗАЛИВОК И ДВОЙНЫХ КОНТУРОВ, ТОЛЩИНА ЛИНИИ - СВЕРХТОНКИЙ АБРИС.
+        </div>
+    );
+
+    const renderStickerOrderConfig = () => {
+        if (!selectedMaterial?.stickerPriceTable) return null;
+
+        const { columns, rows } = selectedMaterial.stickerPriceTable;
+        const isStickerReady = !!stickerSelection;
+
+        return (
+            <div className="w-full text-[#006837] animate-fade-in">
+                <button onClick={() => setViewState('MAIN_SELECTION')} className="mb-6 flex items-center gap-2 text-sm font-bold uppercase hover:underline">← Назад к выбору</button>
+
+                <div className="flex flex-col lg:flex-row gap-10 items-start">
+                    {/* ЛЕВАЯ КОЛОНКА */}
+                    <div className="flex-grow w-full lg:w-3/4">
+                        {/* Активный прайс-лист */}
+                        <div
+                            className="bg-[#00C16E] text-white font-bold text-sm px-5 py-2 flex items-center gap-3 mb-5"
+                            style={{ clipPath: "polygon(20px 0, 100% 0, 100% 100%, 20px 100%, 0 50%)" }}
+                        >
+                            <span className="text-lg">🛒</span>
+                            <span>Активный прайс-лист. Для оформления заказа кликните цену.</span>
+                        </div>
+
+                        {/* Таблица прайс-листа */}
+                        <div className="overflow-x-auto">
+                            <table className="min-w-[560px] border-collapse text-xs font-bold uppercase">
+                                <thead>
+                                    <tr>
+                                        <th className="bg-[#00C16E] text-white px-3 py-2 text-left">ТИРАЖ</th>
+                                        {columns.map((col) => (
+                                            <th key={col} className="bg-[#00C16E] text-white px-3 py-2 text-center">{col} шт</th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {rows.map((row, rowIndex) => (
+                                        <tr key={`${row.label}-${row.sizeLabel}`} className={rowIndex % 2 === 0 ? "bg-gray-200" : "bg-gray-100"}>
+                                            <td className="px-3 py-2 text-[10px] text-[#006837]">{row.label} {row.sizeLabel}</td>
+                                            {row.values.map((value, colIndex) => {
+                                                const qty = columns[colIndex];
+                                                const isSelected = stickerSelection?.rowLabel === row.label
+                                                    && stickerSelection?.sizeLabel === row.sizeLabel
+                                                    && stickerSelection?.quantity === qty;
+                                                return (
+                                                    <td
+                                                        key={`${row.label}-${row.sizeLabel}-${qty}`}
+                                                        onClick={() => handleStickerPriceSelect(row, colIndex)}
+                                                        className={`px-3 py-2 text-center cursor-pointer transition-colors ${isSelected ? "bg-[#00C16E] text-white" : "text-[#006837] hover:bg-[#00C16E]/20"}`}
+                                                    >
+                                                        {value}
+                                                    </td>
+                                                );
+                                            })}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Блок загрузки */}
+                        <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-y-4 gap-x-8 items-start mt-6">
+                            <div className="md:contents">
+                                <div className="hidden md:flex items-center font-bold text-[#006837] uppercase text-sm">
+                                    ЗАГРУЗИТЕ МАКЕТ
+                                </div>
+                                <div className="flex flex-col gap-1 w-full max-w-[500px]">
+                                    <label className="cursor-pointer">
+                                        <div className={`border-2 ${frontFile ? 'border-[#00C16E] bg-[#f0fff8]' : 'border-[#006837]'} rounded bg-white px-4 py-1 flex items-center gap-2 hover:bg-green-50 transition-colors w-fit min-w-[140px]`}>
+                                            <span className="text-xl font-bold pb-1 text-[#006837]">📥</span>
+                                            <span className="font-bold uppercase text-sm text-[#006837]">
+                                                {frontFile ? '✓ ЗАГРУЖЕНО' : 'ЗАГРУЗИТЬ'}
+                                            </span>
+                                        </div>
+                                        <input
+                                            type="file"
+                                            className="hidden"
+                                            accept=".tiff,.tif,.eps"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) setFrontFile(file);
+                                            }}
+                                        />
+                                    </label>
+                                    <span className="text-[9px] font-bold text-[#006837] uppercase">ФОРМАТ TIFF / EPS</span>
+                                    {frontFile && (
+                                        <span className="text-[9px] text-[#00C16E] font-semibold block truncate max-w-full">
+                                            {frontFile.name}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="md:contents">
+                                <div className="hidden md:flex items-center font-bold text-[#006837] uppercase text-sm">
+                                    ЗАГРУЗИТЕ КОНТУР
+                                    <br />
+                                    ПОДРЕЗКИ
+                                </div>
+                                <div className="flex flex-col gap-1 w-full max-w-[500px]">
+                                    <label className="cursor-pointer">
+                                        <div className={`border-2 ${cuttingFile ? 'border-[#00C16E] bg-[#f0fff8]' : 'border-[#006837]'} rounded bg-white px-4 py-1 flex items-center gap-2 hover:bg-green-50 transition-colors w-fit min-w-[140px]`}>
+                                            <span className="text-xl font-bold pb-1 text-[#006837]">📥</span>
+                                            <span className="font-bold uppercase text-sm text-[#006837]">
+                                                {cuttingFile ? '✓ ЗАГРУЖЕНО' : 'ЗАГРУЗИТЬ'}
+                                            </span>
+                                        </div>
+                                        <input
+                                            type="file"
+                                            className="hidden"
+                                            accept=".eps"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) setCuttingFile(file);
+                                            }}
+                                        />
+                                    </label>
+                                    <span className="text-[9px] font-bold text-[#006837] uppercase">ФОРМАТ EPS</span>
+                                    {cuttingFile && (
+                                        <span className="text-[9px] text-[#00C16E] font-semibold block truncate max-w-full">
+                                            {cuttingFile.name}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="md:contents">
+                                <div className="hidden md:flex items-center font-bold text-[#006837] uppercase text-sm">
+                                    ПРЕВЬЮ МАКЕТА
+                                </div>
+                                <div className="flex flex-col gap-1 w-full max-w-[500px]">
+                                    <label className="cursor-pointer">
+                                        <div className={`border-2 ${previewFile ? 'border-[#00C16E] bg-[#f0fff8]' : 'border-[#006837]'} rounded bg-white px-4 py-1 flex items-center gap-2 hover:bg-green-50 transition-colors w-fit min-w-[140px]`}>
+                                            <span className="text-xl font-bold pb-1 text-[#006837]">📥</span>
+                                            <span className="font-bold uppercase text-sm text-[#006837]">
+                                                {previewFile ? '✓ ЗАГРУЖЕНО' : 'ЗАГРУЗИТЬ'}
+                                            </span>
+                                        </div>
+                                        <input
+                                            type="file"
+                                            className="hidden"
+                                            accept=".jpg,.jpeg"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) setPreviewFile(file);
+                                            }}
+                                        />
+                                    </label>
+                                    <span className="text-[9px] font-bold text-[#006837] uppercase">ФОРМАТ JPEG</span>
+                                    {previewFile && (
+                                        <span className="text-[9px] text-[#00C16E] font-semibold block truncate max-w-full">
+                                            {previewFile.name}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="md:contents">
+                                <div className="hidden md:flex items-center font-bold text-[#006837] uppercase text-sm">
+                                    СПОСОБ ДОСТАВКИ
+                                </div>
+                                <div className="w-full max-w-[500px]">
+                                    <input type="text" value={deliveryAddress} onChange={e => setDeliveryAddress(e.target.value)} className="border-2 border-[#006837] rounded-xl w-full h-10 px-3 focus:outline-none" />
+                                </div>
+                            </div>
+                            <div className="md:contents">
+                                <div className="hidden md:flex items-center font-bold text-[#006837] uppercase text-sm">
+                                    КОММЕНТАРИИ
+                                    <br />
+                                    К ЗАКАЗУ
+                                </div>
+                                <div className="w-full max-w-[500px]">
+                                    <input value={comments} onChange={e => setComments(e.target.value)} className="border-2 border-[#006837] rounded-xl w-full h-10 px-3 focus:outline-none" />
+                                </div>
+                            </div>
+                            <div className="md:col-span-2 flex items-center gap-2 pt-2">
+                                <input
+                                    type="checkbox"
+                                    checked={checkLayout}
+                                    onChange={(e) => setCheckLayout(e.target.checked)}
+                                    className="w-5 h-5 border-2 border-[#006837] rounded accent-[#006837]"
+                                />
+                                <span className="text-xs font-bold text-black">Проверить макет на соответствие требований к печати</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* ПРАВАЯ КОЛОНКА */}
+                    <div className="w-full lg:w-1/4 min-w-[280px]">
+                        <div className="border-[3px] border-[#006837] rounded-xl p-5 bg-white">
+                            <h3 className="font-bold text-xl uppercase text-black mb-4">РАСЧЕТ:</h3>
+
+                            <div className="space-y-1 text-sm font-bold text-black mb-6">
+                                <div className="flex justify-between">
+                                    <span>Сумма:</span>
+                                    <span>{totalPrice}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span>Ваша скидка:</span>
+                                    <span>0</span>
+                                </div>
+                                <div className="flex justify-between border-b-[3px] border-[#006837] pb-1 mb-1">
+                                    <span>Цена за единицу:</span>
+                                    <span>{pricePerUnit}</span>
+                                </div>
+                                <div className="flex justify-between text-lg mt-2">
+                                    <span>Итого:</span>
+                                    <span>{totalPrice}</span>
+                                </div>
+                            </div>
+
+                            <div className="mb-6 text-black">
+                                <div className="font-bold">Готовность:</div>
+                                <div className="text-base font-normal">{formattedDay}, {dateStr}, 15:00</div>
+                                <div className="text-[10px] text-gray-500 leading-tight mt-2">
+                                    Дата готовности — ориентировочная и может отличаться от фактической
+                                </div>
+                            </div>
+
+                            <button
+                                type="button"
+                                disabled={!isStickerReady}
+                                className={`w-full flex h-12 rounded overflow-hidden group ${!isStickerReady ? 'opacity-50 pointer-events-none' : ''}`}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleAddToCart();
+                                }}
+                            >
+                                <div className="bg-[#00C16E] hover:bg-[#00a860] text-white font-bold flex-grow flex items-center justify-center uppercase text-base transition-colors">
+                                    ОФОРМИТЬ ЗАКАЗ
+                                </div>
+                                <div className="relative w-16 bg-[#006837]">
+                                    <div className="absolute left-0 top-0 bottom-0 w-6 bg-[#00C16E] hover:bg-[#00a860] origin-top-left transform -skew-x-[20deg] -ml-3 transition-colors"></div>
+                                    <div className="relative z-10 h-full flex items-center justify-center text-white">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     // --- РЕНДЕР: ФОРМА ЗАКАЗА (КАЛЬКУЛЯТОР СНИЗУ) ---
     const renderOrderConfig = () => {
         if (!selectedMaterial) return null;
+        if (activeCategory === 'STICKERS') return renderStickerOrderConfig();
 
         return (
             <div className="w-full text-[#006837] animate-fade-in">
@@ -341,7 +731,6 @@ const WideFormatPage: React.FC = () => {
                                                 <div className="w-full border-2 border-[#006837] rounded-lg h-10 px-3 flex items-center text-gray-500 font-bold text-sm bg-gray-50 truncate">ВКЛЮЧЕНО</div>
                                             </FormField>
                                         </div>
-                                        <button className="bg-[#006837] hover:bg-[#00522b] text-white uppercase font-bold text-xs px-4 rounded h-10 transition-colors shrink-0 mb-0">ЗАКАЗАТЬ МАКЕТ</button>
                                     </div>
                                 </div>
                                 {/* РЯД 2 */}
@@ -367,11 +756,15 @@ const WideFormatPage: React.FC = () => {
                                         </FormField>
                                         {sizeError && <div className="text-red-600 text-xs font-bold mt-1 uppercase">{sizeError}</div>}
                                     </div>
-                                    <div className="w-full sm:w-1/2">
-                                        <FormField label="ЦВЕТ*">
-                                            <input type="text" value={colorCode} onChange={e => setColorCode(e.target.value)} placeholder={selectedMaterial.hasColorPalette ? "Например: 063" : ""} disabled={!selectedMaterial.hasColorPalette} className="w-full border-2 border-[#006837] rounded-lg h-10 px-3 font-bold text-lg focus:outline-none placeholder:text-gray-300 disabled:bg-gray-100 disabled:border-gray-300" />
-                                        </FormField>
-                                    </div>
+                                    {selectedMaterial.hasColorPalette ? (
+                                        <div className="w-full sm:w-1/2">
+                                            <FormField label="ЦВЕТ*">
+                                                <input type="text" value={colorCode} onChange={e => setColorCode(e.target.value)} placeholder="Например: 063" className="w-full border-2 border-[#006837] rounded-lg h-10 px-3 font-bold text-lg focus:outline-none placeholder:text-gray-300" />
+                                            </FormField>
+                                        </div>
+                                    ) : (
+                                        <div className="hidden sm:block sm:w-1/2" aria-hidden="true" />
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -385,16 +778,11 @@ const WideFormatPage: React.FC = () => {
 
                         {/* Нижний блок загрузки */}
                         <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-y-4 gap-x-8 items-start">
-                            <div className="space-y-6 hidden md:block font-bold text-[#006837] uppercase text-sm mt-1">
-                                <div className="h-10 flex items-center">ЗАГРУЗИТЕ МАКЕТ</div>
-                                <div className="h-10 flex items-center pt-6">ЗАГРУЗИТЕ КОНТУР<br/>ПОДРЕЗКИ</div>
-                                <div className="h-10 flex items-center pt-10">ПРЕВЬЮ МАКЕТА</div>
-                                <div className="h-10 flex items-center pt-14">СПОСОБ ДОСТАВКИ</div>
-                                <div className="h-10 flex items-center pt-10">КОММЕНТАРИИ<br/>К ЗАКАЗУ</div>
-                            </div>
-                            <div className="space-y-4 w-full max-w-[500px]">
-                                {/* Инпуты загрузки... (сокращено, аналогично предыдущим версиям) */}
-                                <div className="flex flex-col gap-1">
+                            <div className="md:contents">
+                                <div className="hidden md:flex items-center font-bold text-[#006837] uppercase text-sm">
+                                    ЗАГРУЗИТЕ МАКЕТ
+                                </div>
+                                <div className="flex flex-col gap-1 w-full max-w-[500px]">
                                     <label className="cursor-pointer">
                                         <div className={`border-2 ${frontFile ? 'border-[#00C16E] bg-[#f0fff8]' : 'border-[#006837]'} rounded bg-white px-4 py-1 flex items-center gap-2 hover:bg-green-50 transition-colors w-fit min-w-[140px]`}>
                                             <span className="text-xl font-bold pb-1 text-[#006837]">📥</span>
@@ -414,12 +802,19 @@ const WideFormatPage: React.FC = () => {
                                     </label>
                                     <span className="text-[9px] font-bold text-[#006837] uppercase">ФОРМАТ TIFF</span>
                                     {frontFile && (
-                                        <span className="text-[9px] text-[#00C16E] font-semibold">
+                                        <span className="text-[9px] text-[#00C16E] font-semibold block truncate max-w-full">
                                             {frontFile.name}
                                         </span>
                                     )}
                                 </div>
-                                <div className="flex flex-col gap-1">
+                            </div>
+                            <div className="md:contents">
+                                <div className="hidden md:flex items-center font-bold text-[#006837] uppercase text-sm">
+                                    ЗАГРУЗИТЕ КОНТУР
+                                    <br />
+                                    ПОДРЕЗКИ
+                                </div>
+                                <div className="flex flex-col gap-1 w-full max-w-[500px]">
                                     <label className="cursor-pointer">
                                         <div className={`border-2 ${cuttingFile ? 'border-[#00C16E] bg-[#f0fff8]' : 'border-[#006837]'} rounded bg-white px-4 py-1 flex items-center gap-2 hover:bg-green-50 transition-colors w-fit min-w-[140px]`}>
                                             <span className="text-xl font-bold pb-1 text-[#006837]">📥</span>
@@ -439,12 +834,17 @@ const WideFormatPage: React.FC = () => {
                                     </label>
                                     <span className="text-[9px] font-bold text-[#006837] uppercase">ФОРМАТ EPS</span>
                                     {cuttingFile && (
-                                        <span className="text-[9px] text-[#00C16E] font-semibold">
+                                        <span className="text-[9px] text-[#00C16E] font-semibold block truncate max-w-full">
                                             {cuttingFile.name}
                                         </span>
                                     )}
                                 </div>
-                                <div className="flex flex-col gap-1">
+                            </div>
+                            <div className="md:contents">
+                                <div className="hidden md:flex items-center font-bold text-[#006837] uppercase text-sm">
+                                    ПРЕВЬЮ МАКЕТА
+                                </div>
+                                <div className="flex flex-col gap-1 w-full max-w-[500px]">
                                     <label className="cursor-pointer">
                                         <div className={`border-2 ${previewFile ? 'border-[#00C16E] bg-[#f0fff8]' : 'border-[#006837]'} rounded bg-white px-4 py-1 flex items-center gap-2 hover:bg-green-50 transition-colors w-fit min-w-[140px]`}>
                                             <span className="text-xl font-bold pb-1 text-[#006837]">📥</span>
@@ -464,22 +864,38 @@ const WideFormatPage: React.FC = () => {
                                     </label>
                                     <span className="text-[9px] font-bold text-[#006837] uppercase">ФОРМАТ JPEG</span>
                                     {previewFile && (
-                                        <span className="text-[9px] text-[#00C16E] font-semibold">
+                                        <span className="text-[9px] text-[#00C16E] font-semibold block truncate max-w-full">
                                             {previewFile.name}
                                         </span>
                                     )}
                                 </div>
-                                <div><input type="text" value={deliveryAddress} onChange={e => setDeliveryAddress(e.target.value)} className="border-2 border-[#006837] rounded-xl w-full h-10 px-3 focus:outline-none" /></div>
-                                <div><input value={comments} onChange={e => setComments(e.target.value)} className="border-2 border-[#006837] rounded-xl w-full h-10 px-3 focus:outline-none" /></div>
-                                <div className="flex items-center gap-2 pt-2">
-                                    <input 
-                                        type="checkbox" 
-                                        checked={checkLayout}
-                                        onChange={(e) => setCheckLayout(e.target.checked)}
-                                        className="w-5 h-5 border-2 border-[#006837] rounded accent-[#006837]" 
-                                    />
-                                    <span className="text-xs font-bold text-black">Проверить макет на соответствие требований к печати</span>
+                            </div>
+                            <div className="md:contents">
+                                <div className="hidden md:flex items-center font-bold text-[#006837] uppercase text-sm">
+                                    СПОСОБ ДОСТАВКИ
                                 </div>
+                                <div className="w-full max-w-[500px]">
+                                    <input type="text" value={deliveryAddress} onChange={e => setDeliveryAddress(e.target.value)} className="border-2 border-[#006837] rounded-xl w-full h-10 px-3 focus:outline-none" />
+                                </div>
+                            </div>
+                            <div className="md:contents">
+                                <div className="hidden md:flex items-center font-bold text-[#006837] uppercase text-sm">
+                                    КОММЕНТАРИИ
+                                    <br />
+                                    К ЗАКАЗУ
+                                </div>
+                                <div className="w-full max-w-[500px]">
+                                    <input value={comments} onChange={e => setComments(e.target.value)} className="border-2 border-[#006837] rounded-xl w-full h-10 px-3 focus:outline-none" />
+                                </div>
+                            </div>
+                            <div className="md:col-span-2 flex items-center gap-2 pt-2">
+                                <input 
+                                    type="checkbox" 
+                                    checked={checkLayout}
+                                    onChange={(e) => setCheckLayout(e.target.checked)}
+                                    className="w-5 h-5 border-2 border-[#006837] rounded accent-[#006837]" 
+                                />
+                                <span className="text-xs font-bold text-black">Проверить макет на соответствие требований к печати</span>
                             </div>
                         </div>
                     </div>
@@ -534,6 +950,9 @@ const WideFormatPage: React.FC = () => {
     };
 
     const renderFooterInfo = () => {
+        if (activeCategory === 'STICKERS') {
+            return renderStickerNotes();
+        }
         return (
             <div className="w-full bg-white text-black py-8">
                 <div className="flex flex-col md:flex-row justify-between items-start mb-6 border-b-2 border-[#E53935] pb-2">
@@ -584,7 +1003,7 @@ const WideFormatPage: React.FC = () => {
                         <div className="absolute top-0 right-[-30px] w-0 h-0 border-t-[32px] border-t-transparent border-l-[30px] border-l-[#00C16E] border-b-[32px] border-b-transparent z-20"></div>
                     </div>
                     <div className="bg-[#006837] flex-grow flex items-center h-full text-white font-bold text-lg md:text-xl uppercase tracking-wider pl-16 pr-8 truncate">
-                        {viewState === 'ORDER_CONFIG' && selectedMaterial ? selectedMaterial.title : getHeaderText()}
+                        {viewState === 'ORDER_CONFIG' && selectedMaterial && activeCategory !== 'STICKERS' ? selectedMaterial.title : getHeaderText()}
                     </div>
                 </div>
 

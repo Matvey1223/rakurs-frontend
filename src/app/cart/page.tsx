@@ -8,13 +8,23 @@ import Link from 'next/link';
 const CartPage: React.FC = () => {
   const { items, removeItem, getTotalPrice, clearCart } = useCart();
   const total = getTotalPrice();
+  const typeLabels: Record<string, string> = {
+    VIZITKI: "ВИЗИТКИ",
+    FLAERS: "ФЛАЕРЫ",
+    PLOTTER: "ПЛОТТЕР",
+    WIDE: "ШИРОКОФОРМАТНАЯ ПЕЧАТЬ",
+    SOUVENIRS: "СУВЕНИРЫ",
+    ADDRESS_SIGNS: "АДРЕСНЫЕ ТАБЛИЧКИ",
+    LETTERS: "БУКВЫ",
+  };
+  const getTypeLabel = (type: string) => typeLabels[type] ?? type;
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <Header />
 
       <main className="max-w-[1200px] mx-auto px-4 py-8 flex-grow">
-        <h1 className="text-3xl font-bold text-[#006837] mb-8 uppercase">Корзина</h1>
+        <h1 className="text-3xl font-bold text-[#006837] mb-8 px-24 uppercase">Корзина</h1>
 
         {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-gray-400">
@@ -42,7 +52,7 @@ const CartPage: React.FC = () => {
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex-1">
                       <h3 className="font-bold text-[#006837] uppercase text-lg mb-2">
-                        {item.type === 'VIZITKI' ? 'ВИЗИТКИ' : 'ФЛАЕРЫ'}
+                        {getTypeLabel(item.type)}
                       </h3>
                       <div className="space-y-1 text-sm text-gray-600">
                         <p>

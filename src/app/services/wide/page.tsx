@@ -16,6 +16,7 @@ interface Material {
     subtitle: string; // "плотность 440гр"
     pricePerSqM: number; // Цена за кв.м.
     image: string; // URL картинки
+    maxWidth?: number; // Максимальная ширина для пленок
 }
 
 // Интерфейс данных заказа
@@ -43,10 +44,17 @@ const WideFormatPage: React.FC = () => {
     const [width, setWidth] = useState<string>("");
     const [height, setHeight] = useState<string>("");
     const [quantity, setQuantity] = useState<string>("1");
-    const [soldering, setSoldering] = useState<string>(""); // Пропайка
-    const [eyelets, setEyelets] = useState<string>("");
-    const [valves, setValves] = useState<string>("");
-    const [isCutting, setIsCutting] = useState<boolean>(false);
+    const [soldering, setSoldering] = useState<string>(""); // Пропайка - для баннеров
+    const [solderingType, setSolderingType] = useState<string>(""); // Тип пропайки для баннеров
+    const [eyelets, setEyelets] = useState<string>(""); // Люверсы - для баннеров
+    const [valves, setValves] = useState<string>(""); // Клапаны - для баннеров
+    const [isCutting, setIsCutting] = useState<boolean>(false); // Подрезка по периметру
+    const [widthError, setWidthError] = useState<string | null>(null);
+    
+    // Дополнительные поля для пленок
+    const [lamination, setLamination] = useState<boolean>(false); // Ламинация
+    const [plotterCutting, setPlotterCutting] = useState<boolean>(false); // Плоттерная порезка
+    const [weeding, setWeeding] = useState<boolean>(false); // Выборка/монтажная пленка
 
     const [deliveryAddress, setDeliveryAddress] = useState("");
     const [comments, setComments] = useState("");
@@ -55,6 +63,7 @@ const WideFormatPage: React.FC = () => {
     // Состояния для файлов
     const [frontFile, setFrontFile] = useState<File | null>(null);
     const [previewFile, setPreviewFile] = useState<File | null>(null);
+    const [cuttingFile, setCuttingFile] = useState<File | null>(null); // Контур подрезки (EPS) - для пленок
     
     const { addItem } = useCart();
 
@@ -88,29 +97,33 @@ const WideFormatPage: React.FC = () => {
             id: "orafol",
             title: "ОРАФОЛ",
             subtitle: "",
-            pricePerSqM: 650,
-            image: "https://placehold.co/400x300/e2e8f0/006837?text=ОРАФОЛ" // Замени на свое фото
+            pricePerSqM: 750, // Орафол/ораджет = 750р/кв.м
+            maxWidth: 1.58, // Орафол/ораджет под печать 1,58м
+            image: "https://placehold.co/400x300/e2e8f0/006837?text=ОРАФОЛ"
         },
         {
             id: "blackout",
             title: "БЛЕКАУТ",
             subtitle: "",
-            pricePerSqM: 750,
-            image: "https://placehold.co/400x300/e2e8f0/006837?text=БЛЕКАУТ" // Замени на свое фото
+            pricePerSqM: 750, // Блекаут (используем базовую цену)
+            maxWidth: 1.26, // Блекаут 1,26м
+            image: "https://placehold.co/400x300/e2e8f0/006837?text=БЛЕКАУТ"
         },
         {
             id: "perfofilm",
             title: "ПЕРФОПЛЕНКА",
-            subtitle: "", // Сетка
-            pricePerSqM: 750,
-            image: "https://placehold.co/400x300/e2e8f0/006837?text=ПЕРФОПЛЕНКА" // Замени на свое фото
+            subtitle: "",
+            pricePerSqM: 850, // Перфорированная пленка = 850р/кв.м
+            maxWidth: 1.35, // Перфорация 1,35м
+            image: "https://placehold.co/400x300/e2e8f0/006837?text=ПЕРФОПЛЕНКА"
         },
         {
             id: "holographic_film",
             title: "ГОЛОГРАФИЧЕСКАЯ",
-            subtitle: "плотность 360гр", // Сетка
-            pricePerSqM: 750,
-            image: "https://placehold.co/400x300/e2e8f0/006837?text=ГОЛОГРАФИЧЕСКАЯ" // Замени на свое фото
+            subtitle: "",
+            pricePerSqM: 1000, // Голографическая пленка = 1000р/кв.м
+            maxWidth: 1.18, // Голографическая 1,18м
+            image: "https://placehold.co/400x300/e2e8f0/006837?text=ГОЛОГРАФИЧЕСКАЯ"
         }
     ];
 
@@ -119,14 +132,16 @@ const WideFormatPage: React.FC = () => {
             id: "blueback",
             title: "БЛЮБЭК",
             subtitle: "",
-            pricePerSqM: 650,
+            pricePerSqM: 500,
+            maxWidth: 1.54,
             image: "https://placehold.co/400x300/e2e8f0/006837?text=БЛЮБЭК" // Замени на свое фото
         },
         {
             id: "backlit",
             title: "БЭКЛИТ",
             subtitle: "",
-            pricePerSqM: 750,
+            pricePerSqM: 600,
+            maxWidth: 1.18,
             image: "https://placehold.co/400x300/e2e8f0/006837?text=БЭКЛИТ" // Замени на свое фото
         },
     ];
@@ -136,7 +151,8 @@ const WideFormatPage: React.FC = () => {
             id: "canvas",
             title: "ХОЛСТ",
             subtitle: "",
-            pricePerSqM: 650,
+            pricePerSqM: 2500,
+            maxWidth: 1.25,
             image: "https://placehold.co/400x300/e2e8f0/006837?text=ХОЛСТ" // Замени на свое фото
         },
     ];
@@ -149,12 +165,32 @@ const WideFormatPage: React.FC = () => {
         setViewState('ORDER_CONFIG');
         // Сброс полей
         setWidth(""); setHeight(""); setQuantity("1");
-        setSoldering(""); setEyelets(""); setValves(""); setIsCutting(false);
+        setSoldering(""); setSolderingType(""); setEyelets(""); setValves(""); setIsCutting(false);
+        setLamination(false); setPlotterCutting(false); setWeeding(false);
         setDeliveryAddress(""); setComments(""); setCheckLayout(false);
+        setWidthError(null);
         // Сброс файлов
-        setFrontFile(null); setPreviewFile(null);
+        setFrontFile(null); setPreviewFile(null); setCuttingFile(null);
         window.scrollTo(0, 0);
     };
+    
+    // Валидация ширины (зависит от категории и материала)
+    useEffect(() => {
+        if (!width || !selectedMaterial) {
+            setWidthError(null);
+            return;
+        }
+
+        const w = parseFloat(width.replace(',', '.')) || 0;
+        const maxWidth = selectedMaterial.maxWidth ?? 3.1;
+        const maxWidthLabel = maxWidth.toString().replace('.', ',');
+
+        if (w > maxWidth) {
+            setWidthError(`Максимальная ширина: ${maxWidthLabel}м`);
+        } else {
+            setWidthError(null);
+        }
+    }, [width, selectedMaterial, activeCategory]);
     
     // Функция конвертации File в base64
     const fileToBase64 = (file: File): Promise<string> => {
@@ -173,14 +209,16 @@ const WideFormatPage: React.FC = () => {
         try {
             const readyDate = new Date();
             readyDate.setDate(readyDate.getDate() + 4);
+            const dayOfWeek = readyDate.toLocaleDateString('ru-RU', { weekday: 'long' });
+            const formattedDay = dayOfWeek.charAt(0).toUpperCase() + dayOfWeek.slice(1);
             const dateStr = readyDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
-            const formattedDay = new Date().toLocaleDateString('ru-RU', { weekday: 'long' });
-            const dayStr = formattedDay.charAt(0).toUpperCase() + formattedDay.slice(1);
+            const fullDateStr = `${formattedDay}, ${dateStr}г.`;
             const timeStr = "15:00";
             
             // Конвертируем файлы в base64
             let frontFileBase64: string | undefined;
             let previewFileBase64: string | undefined;
+            let cuttingFileBase64: string | undefined;
             
             try {
                 if (frontFile) {
@@ -189,14 +227,17 @@ const WideFormatPage: React.FC = () => {
                 if (previewFile) {
                     previewFileBase64 = await fileToBase64(previewFile);
                 }
+                if (cuttingFile) {
+                    cuttingFileBase64 = await fileToBase64(cuttingFile);
+                }
             } catch (fileError) {
                 console.error('Ошибка при конвертации файлов:', fileError);
                 alert('Ошибка при обработке файлов. Товар будет добавлен без файлов.');
             }
             
             const cartItem: CartItem = {
-                id: `wide-${selectedMaterial.id}-${Date.now()}`,
-                type: 'WIDE_FORMAT',
+                id: `wide-${activeCategory}-${selectedMaterial.id}-${Date.now()}`,
+                type: activeCategory === 'FILM' ? 'FILM' : 'WIDE_FORMAT',
                 format: `${width}x${height}м`,
                 quantity: parseInt(quantity) || 1,
                 basePrice: totalPrice,
@@ -205,16 +246,20 @@ const WideFormatPage: React.FC = () => {
                 deliveryAddress: deliveryAddress || undefined,
                 comments: comments || undefined,
                 checkLayout: checkLayout || undefined,
-                readyDate: `${dayStr}, ${dateStr}`,
+                readyDate: fullDateStr,
                 readyTime: timeStr,
                 // Файлы
                 frontFile: frontFileBase64,
+                backFile: cuttingFileBase64, // Используем backFile для контура подрезки
                 previewFile: previewFileBase64,
                 frontFileName: frontFile?.name,
+                backFileName: cuttingFile?.name,
                 previewFileName: previewFile?.name,
                 frontFileSize: frontFile?.size,
+                backFileSize: cuttingFile?.size,
                 previewFileSize: previewFile?.size,
                 frontFileType: frontFile?.type,
+                backFileType: cuttingFile?.type,
                 previewFileType: previewFile?.type,
             };
             
@@ -228,36 +273,125 @@ const WideFormatPage: React.FC = () => {
 
     // Калькулятор стоимости
     const calculateTotal = () => {
-        if (!selectedMaterial) return 0;
+        if (!selectedMaterial || widthError) return 0;
 
         const w = parseFloat(width.replace(',', '.')) || 0;
         const h = parseFloat(height.replace(',', '.')) || 0;
         const qty = parseInt(quantity) || 0;
 
+        if (w === 0 || h === 0 || qty === 0) return 0;
+
+        // Площадь считается с учетом запаса под подрезку (для пленок) или пропайку (для баннеров)
         const area = w * h; // Площадь одного изделия
         const totalArea = area * qty; // Общая площадь
 
-        // 1. Стоимость печати
-        let total = totalArea * selectedMaterial.pricePerSqM;
+        let total = 0;
 
-        // 2. Доп услуги (цены из скриншота "ПОМЕТКИ")
-        // Пропайка (100р/пог.м) - берем введенное значение длины пропайки
-        const solderLen = parseFloat(soldering.replace(',', '.')) || 0;
-        total += solderLen * 100;
+        if (activeCategory === 'FILM') {
+            // === РАСЧЕТ ДЛЯ ПЛЕНОК ===
+            
+            // 1. Стоимость печати пленки
+            total = totalArea * selectedMaterial.pricePerSqM;
 
-        // Люверсы (25р/шт)
-        const eyeletsCount = parseInt(eyelets) || 0;
-        total += eyeletsCount * 25;
+            // 2. Ламинация пленки (850р/кв.м) - считается по площади пленки под печать
+            if (lamination) {
+                total += totalArea * 850;
+            }
 
-        // Клапаны (50р/шт)
-        const valvesCount = parseInt(valves) || 0;
-        total += valvesCount * 50;
+            // 3. Плоттерная порезка (400р/кв.м) - считается по площади пленки под печать
+            if (plotterCutting) {
+                total += totalArea * 400;
+            }
 
-        // Подрезка по периметру (30р/пог.м)
-        // Периметр = (w + h) * 2 * кол-во
-        if (isCutting) {
-            const perimeter = (w + h) * 2 * qty;
-            total += perimeter * 30;
+            // 4. Выборка/монтажная пленка - считается по площади пленки под печать
+            // Стандартная = 400р/кв.м (элементы >= 5см)
+            // Мелкие элементы (< 5см) = 800р/кв.м
+            // Пока используем стандартную цену, так как нет фильтра для определения размера элементов
+            if (weeding) {
+                total += totalArea * 400; // Стандартная цена
+            }
+
+            // 5. Подрезка по периметру (25р/пог.м)
+            if (isCutting) {
+                const perimeter = (w + h) * 2 * qty;
+                total += perimeter * 25;
+            }
+
+        } else if (activeCategory === 'PAPER') {
+            // === РАСЧЕТ ДЛЯ БУМАГИ ===
+
+            // 1. Стоимость печати бумаги
+            total = totalArea * selectedMaterial.pricePerSqM;
+
+            // 2. Ламинация бумаги (800р/кв.м) - считается по площади бумаги под печать
+            if (lamination) {
+                total += totalArea * 800;
+            }
+
+            // 3. Подрезка по периметру (25р/пог.м)
+            if (isCutting) {
+                const perimeter = (w + h) * 2 * qty;
+                total += perimeter * 25;
+            }
+        } else if (activeCategory === 'CANVAS') {
+            // === РАСЧЕТ ДЛЯ ХОЛСТА ===
+
+            // 1. Стоимость печати холста
+            total = totalArea * selectedMaterial.pricePerSqM;
+
+            // 2. Подрезка по периметру (30р/пог.м)
+            if (isCutting) {
+                const perimeter = (w + h) * 2 * qty;
+                total += perimeter * 30;
+            }
+        } else {
+            // === РАСЧЕТ ДЛЯ БАННЕРОВ ===
+            
+            // 1. Стоимость печати
+            total = totalArea * selectedMaterial.pricePerSqM;
+
+            // 2. Пропайка (100р/пог.м) - считается по длине выбранной стороны
+            let solderLen = 0;
+            if (solderingType) {
+                const shortSide = Math.min(w, h);
+                const longSide = Math.max(w, h);
+                
+                switch(solderingType) {
+                    case "1 КОРОТКАЯ СТОРОНА":
+                        solderLen = shortSide;
+                        break;
+                    case "2 КОРОТКИХ СТОРОНЫ":
+                        solderLen = shortSide * 2;
+                        break;
+                    case "1 ДЛИННАЯ СТОРОНА":
+                        solderLen = longSide;
+                        break;
+                    case "2 ДЛИННЫХ СТОРОНЫ":
+                        solderLen = longSide * 2;
+                        break;
+                    case "ПО ПЕРИМЕТРУ":
+                        solderLen = (w + h) * 2;
+                        break;
+                }
+                solderLen = solderLen * qty;
+            } else if (soldering) {
+                solderLen = parseFloat(soldering.replace(',', '.')) || 0;
+            }
+            total += solderLen * 100;
+
+            // Люверсы (25р/шт)
+            const eyeletsCount = parseInt(eyelets) || 0;
+            total += eyeletsCount * 25;
+
+            // Клапаны (50р/шт)
+            const valvesCount = parseInt(valves) || 0;
+            total += valvesCount * 50;
+
+            // Подрезка по периметру (30р/пог.м)
+            if (isCutting) {
+                const perimeter = (w + h) * 2 * qty;
+                total += perimeter * 30;
+            }
         }
 
         return Math.round(total);
@@ -334,10 +468,12 @@ const WideFormatPage: React.FC = () => {
         // Расчет даты (как в исходном коде)
         const readyDate = new Date();
         readyDate.setDate(readyDate.getDate() + 4);
-        const dateStr = readyDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
-        // День недели с большой буквы
-        const dayOfWeek = new Date().toLocaleDateString('ru-RU', { weekday: 'long' });
+        const dayOfWeek = readyDate.toLocaleDateString('ru-RU', { weekday: 'long' });
         const formattedDay = dayOfWeek.charAt(0).toUpperCase() + dayOfWeek.slice(1);
+        const dateStr = readyDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+        const fullDateStr = `${formattedDay}, ${dateStr}г., 15:00`;
+        const maxWidthValue = selectedMaterial.maxWidth ?? 3.1;
+        const maxWidthLabel = maxWidthValue.toString().replace('.', ',');
 
         return (
             <div className="w-full max-w-[1200px] mx-auto text-[#006837] font-sans">
@@ -361,47 +497,140 @@ const WideFormatPage: React.FC = () => {
                                 <h3 className="font-bold text-black lowercase text-sm">{selectedMaterial.title}</h3>
                             </div>
 
-                            {/* 2. Инпуты размеров */}
-                            <div className="flex flex-col gap-4 w-full md:w-[220px]">
-                                {/* Тираж */}
-                                <div>
-                                    <label className="font-bold text-[10px] uppercase mb-1 block text-black">ТИРАЖ (шт)*</label>
-                                    <input
-                                        type="number"
-                                        value={quantity}
-                                        onChange={e => setQuantity(e.target.value)}
-                                        className="w-full border-2 border-[#006837] rounded-xl h-9 px-3 font-bold text-lg focus:outline-none focus:ring-2 focus:ring-[#00C16E]"
-                                    />
-                                </div>
-                                {/* Длина */}
-                                <div>
-                                    <label className="font-bold text-[10px] uppercase mb-1 block text-black">ДЛИНА (м)*</label>
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        value={height}
-                                        onChange={e => setHeight(e.target.value)}
-                                        className="w-full border-2 border-[#006837] rounded-xl h-9 px-3 font-bold text-lg focus:outline-none focus:ring-2 focus:ring-[#00C16E]"
-                                    />
-                                </div>
-                                {/* Ширина */}
-                                <div>
-                                    <label className="font-bold text-[10px] uppercase mb-1 block text-black">ШИРИНА (м)*</label>
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        value={width}
-                                        onChange={e => setWidth(e.target.value)}
-                                        className="w-full border-2 border-[#006837] rounded-xl h-9 px-3 font-bold text-lg focus:outline-none focus:ring-2 focus:ring-[#00C16E]"
-                                    />
-                                </div>
-                            </div>
+                            {/* 2. Инпуты размеров в два столбца */}
+                            <div className="flex-grow flex flex-col gap-4">
+                                {/* Два столбца инпутов */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {/* Левый столбец */}
+                                    <div className="flex flex-col gap-4">
+                                        {/* Тираж */}
+                                        <div>
+                                            <label className="font-bold text-[10px] uppercase mb-1 block text-black">ТИРАЖ (шт)*</label>
+                                            <input
+                                                type="number"
+                                                value={quantity}
+                                                onChange={e => setQuantity(e.target.value)}
+                                                className="w-full border-2 border-[#006837] rounded-xl h-9 px-3 font-bold text-lg focus:outline-none focus:ring-2 focus:ring-[#00C16E]"
+                                            />
+                                        </div>
+                                        {/* Длина */}
+                                        <div>
+                                            <label className="font-bold text-[10px] uppercase mb-1 block text-black">ДЛИНА (м)*</label>
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                value={height}
+                                                onChange={e => setHeight(e.target.value)}
+                                                className="w-full border-2 border-[#006837] rounded-xl h-9 px-3 font-bold text-lg focus:outline-none focus:ring-2 focus:ring-[#00C16E]"
+                                            />
+                                        </div>
+                                        {/* Ширина */}
+                                        <div>
+                                            <label className="font-bold text-[10px] uppercase mb-1 block text-black">ШИРИНА (м)*</label>
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                max={maxWidthValue}
+                                                value={width}
+                                                onChange={e => setWidth(e.target.value)}
+                                                className={`w-full border-2 ${widthError ? 'border-red-500 bg-red-50' : 'border-[#006837]'} rounded-xl h-9 px-3 font-bold text-lg focus:outline-none focus:ring-2 focus:ring-[#00C16E]`}
+                                            />
+                                            {widthError && (
+                                                <span className="text-[9px] text-red-600 font-bold mt-1 block">
+                                                    Макс: {maxWidthLabel}м
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
 
-                            {/* 3. Кнопка "Заказать макет" */}
-                            <div className="mt-6">
-                                <button className="bg-[#006837] hover:bg-[#00522b] text-white uppercase font-bold text-sm px-6 py-2 rounded transition-colors whitespace-nowrap">
-                                    ЗАКАЗАТЬ МАКЕТ
-                                </button>
+                                    {/* Правый столбец - зависит от категории */}
+                                    {activeCategory === 'FILM' ? (
+                                        <div className="flex flex-col gap-4">
+                                            {/* Ламинация */}
+                                            <div>
+                                                <label className="font-bold text-[10px] uppercase mb-1 block text-black">ЛАМИНАЦИЯ*</label>
+                                                <div 
+                                                    onClick={() => setLamination(!lamination)}
+                                                    className="w-full border-2 border-[#006837] rounded-xl h-9 px-3 flex items-center font-bold text-lg cursor-pointer select-none transition-colors hover:bg-green-50"
+                                                >
+                                                    <span className={lamination ? "text-[#006837]" : "text-gray-400"}>{lamination ? "ДА" : "НЕТ"}</span>
+                                                </div>
+                                            </div>
+                                            {/* Плоттерная порезка */}
+                                            <div>
+                                                <label className="font-bold text-[10px] uppercase mb-1 block text-black">ПЛОТТЕРНАЯ ПОРЕЗКА*</label>
+                                                <div 
+                                                    onClick={() => setPlotterCutting(!plotterCutting)}
+                                                    className="w-full border-2 border-[#006837] rounded-xl h-9 px-3 flex items-center font-bold text-lg cursor-pointer select-none transition-colors hover:bg-green-50"
+                                                >
+                                                    <span className={plotterCutting ? "text-[#006837]" : "text-gray-400"}>{plotterCutting ? "ДА" : "НЕТ"}</span>
+                                                </div>
+                                            </div>
+                                            {/* Выборка/монтажная пленка */}
+                                            <div>
+                                                <label className="font-bold text-[10px] uppercase mb-1 block text-black">ВЫБОРКА, МОНТАЖНАЯ ПЛЕНКА*</label>
+                                                <div 
+                                                    onClick={() => setWeeding(!weeding)}
+                                                    className="w-full border-2 border-[#006837] rounded-xl h-9 px-3 flex items-center font-bold text-lg cursor-pointer select-none transition-colors hover:bg-green-50"
+                                                >
+                                                    <span className={weeding ? "text-[#006837]" : "text-gray-400"}>{weeding ? "ДА" : "НЕТ"}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : activeCategory === 'PAPER' ? (
+                                        <div className="flex flex-col gap-4">
+                                            {/* Ламинация */}
+                                            <div>
+                                                <label className="font-bold text-[10px] uppercase mb-1 block text-black">ЛАМИНАЦИЯ*</label>
+                                                <div 
+                                                    onClick={() => setLamination(!lamination)}
+                                                    className="w-full border-2 border-[#006837] rounded-xl h-9 px-3 flex items-center font-bold text-lg cursor-pointer select-none transition-colors hover:bg-green-50"
+                                                >
+                                                    <span className={lamination ? "text-[#006837]" : "text-gray-400"}>{lamination ? "ДА" : "НЕТ"}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : activeCategory === 'CANVAS' ? null : (
+                                        <div className="flex flex-col gap-4">
+                                            {/* Пропайка - выпадающий список (для баннеров) */}
+                                            <div>
+                                                <label className="font-bold text-[10px] uppercase mb-1 block text-black">ПРОПАЙКА СТОРОНЫ*</label>
+                                                <select
+                                                    value={solderingType}
+                                                    onChange={e => setSolderingType(e.target.value)}
+                                                    className="w-full border-2 border-[#006837] rounded-xl h-9 px-3 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-[#00C16E] bg-white"
+                                                >
+                                                    <option value="">Выберите вариант</option>
+                                                    <option value="1 КОРОТКАЯ СТОРОНА">1 КОРОТКАЯ СТОРОНА</option>
+                                                    <option value="2 КОРОТКИХ СТОРОНЫ">2 КОРОТКИХ СТОРОНЫ</option>
+                                                    <option value="1 ДЛИННАЯ СТОРОНА">1 ДЛИННАЯ СТОРОНА</option>
+                                                    <option value="2 ДЛИННЫХ СТОРОНЫ">2 ДЛИННЫХ СТОРОНЫ</option>
+                                                    <option value="ПО ПЕРИМЕТРУ">ПО ПЕРИМЕТРУ</option>
+                                                </select>
+                                            </div>
+                                            {/* Люверсы */}
+                                            <div>
+                                                <label className="font-bold text-[10px] uppercase mb-1 block text-black">ЛЮВЕРСЫ (шт)*</label>
+                                                <input
+                                                    type="number"
+                                                    value={eyelets}
+                                                    onChange={e => setEyelets(e.target.value)}
+                                                    className="w-full border-2 border-[#006837] rounded-xl h-9 px-3 font-bold text-lg focus:outline-none focus:ring-2 focus:ring-[#00C16E]"
+                                                />
+                                            </div>
+                                            {/* Клапаны */}
+                                            <div>
+                                                <label className="font-bold text-[10px] uppercase mb-1 block text-black">КЛАПАНЫ (шт)*</label>
+                                                <input
+                                                    type="number"
+                                                    value={valves}
+                                                    onChange={e => setValves(e.target.value)}
+                                                    className="w-full border-2 border-[#006837] rounded-xl h-9 px-3 font-bold text-lg focus:outline-none focus:ring-2 focus:ring-[#00C16E]"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
@@ -450,6 +679,41 @@ const WideFormatPage: React.FC = () => {
                                     className="w-6 h-6 border-2 border-[#006837] rounded md:ml-0 accent-[#006837] cursor-pointer"
                                 />
                             </div>
+
+                            {/* ROW 2.5: Загрузка контура подрезки (только для пленок) */}
+                            {activeCategory === 'FILM' && (
+                                <>
+                                    <div className="font-bold uppercase text-sm pt-2 hidden md:block">ЗАГРУЗИТЕ КОНТУР<br/>ПОДРЕЗКИ</div>
+                                    <div className="flex flex-col">
+                                        <span className="md:hidden font-bold uppercase text-sm mb-1">ЗАГРУЗИТЕ КОНТУР ПОДРЕЗКИ</span>
+                                        <div className="flex flex-col items-start gap-1">
+                                            <label className="cursor-pointer">
+                                                <div className={`border-2 ${cuttingFile ? 'border-[#00C16E] bg-[#f0fff8]' : 'border-[#006837]'} rounded bg-white px-3 py-1 flex items-center gap-2 hover:bg-gray-50 transition-colors w-fit min-w-[140px]`}>
+                                                    <span className="text-xl font-bold text-[#006837] leading-none pb-1">📥</span>
+                                                    <span className="font-bold uppercase text-[#006837] text-sm">
+                                                        {cuttingFile ? '✓ ЗАГРУЖЕНО' : 'ЗАГРУЗИТЬ'}
+                                                    </span>
+                                                </div>
+                                                <input 
+                                                    type="file" 
+                                                    className="hidden" 
+                                                    accept=".eps"
+                                                    onChange={(e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (file) setCuttingFile(file);
+                                                    }}
+                                                />
+                                            </label>
+                                            {cuttingFile && (
+                                                <span className="text-[9px] text-[#00C16E] font-semibold ml-1 block mt-1">
+                                                    {cuttingFile.name}
+                                                </span>
+                                            )}
+                                            <span className="text-[10px] uppercase text-[#006837] font-bold ml-1">ФОРМАТ EPS</span>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
 
                             {/* ROW 3: Превью JPEG */}
                             <div className="font-bold uppercase text-sm pt-2 hidden md:block">ПРЕВЬЮ МАКЕТА</div>
@@ -534,7 +798,7 @@ const WideFormatPage: React.FC = () => {
                                 </div>
                                 <div className="flex justify-between">
                                     <span>Ваша скидка:</span>
-                                    <span>100</span>
+                                    <span>0</span>
                                 </div>
                                 <div className="flex justify-between border-b-[3px] border-[#006837] pb-1 mb-1">
                                     <span>Цена за единицу:</span>
@@ -548,7 +812,7 @@ const WideFormatPage: React.FC = () => {
 
                             <div className="mb-6 text-black">
                                 <div className="font-bold">Готовность:</div>
-                                <div className="text-base font-normal">{formattedDay}, {dateStr}, 15:00</div>
+                                <div className="text-base font-normal">{fullDateStr}</div>
                                 <div className="text-[10px] text-gray-500 leading-tight mt-2">
                                     Дата готовности — ориентировочная<br/>и может отличаться от фактической
                                 </div>
@@ -636,11 +900,39 @@ const WideFormatPage: React.FC = () => {
                 {/* --- FOOTER INFO --- */}
                 <div className="w-full bg-[#006837] py-6 px-8 md:px-16 text-white relative min-h-[120px] flex items-center" style={{ clipPath: "polygon(50px 0, 100% 0, 100% 100%, 50px 100%, 0 50%)" }}>
                     <div className="text-sm md:text-base font-medium leading-relaxed">
-                        <span className="text-[#FFD700] font-bold">ВАЖНО! </span>
-                        МАКЕТ ПРИНИМАЕТСЯ К ПЕЧАТИ В <span className="font-bold">ФОРМАТЕ TIFF</span>, РАЗМЕР <span className="font-bold">1:1</span>, ЦВЕТОВОЙ МОДЕЛИ <span className="font-bold">CMYK</span>,<br className="hidden md:block"/>
-                        КАЧЕСТВО МАКЕТА <span className="font-bold">НЕ НИЖЕ 36 dpi</span> ПРИ БОЛЬШИХ РАЗМЕРАХ ИЗДЕЛИЯ,<br className="hidden md:block"/>
-                        В ОСТАЛЬНЫХ СЛУЧАЯХ КАЧЕСТВО МАКЕТА ДОЛЖНО БЫТЬ <span className="font-bold">300 dpi</span>.<br className="hidden md:block"/>
-                        <span className="text-[#FFD700]">РАЗМЕЩЕНИЕ ЛЮВЕРСОВ И КЛАПАНОВ ОБЯЗАТЕЛЬНО УКАЗЫВАЕТСЯ НА МАКЕТЕ.</span>
+                        {activeCategory === 'FILM' ? (
+                            <>
+                                <span className="text-[#FFD700] font-bold">ВАЖНО! </span>
+                                МАКЕТ ПРИНИМАЕТСЯ К ПЕЧАТИ В <span className="font-bold">ФОРМАТЕ TIFF</span>, РАЗМЕР <span className="font-bold">1:1</span>, ЦВЕТОВОЙ МОДЕЛИ <span className="font-bold">CMYK</span>, БЕЗ ПРОЗРАЧНОСТИ.<br className="hidden md:block"/>
+                                КАЧЕСТВО <span className="font-bold">НЕ НИЖЕ 300 dpi</span> - ДЛЯ ПЕЧАТИ ПЛЕНКИ + КОНТУР ПОДРЕЗКИ В ФОРМАТЕ <span className="font-bold">EPS</span>, СВЕРХТОНКИЙ АБРИС, БЕЗ ЗАЛИВКИ И ПРОЗРАЧНОСТИ.<br className="hidden md:block"/>
+                                <span className="text-[#FFD700]">ПРЕДЕЛЬНЫЙ РАЗМЕР ПО ШИРИНЕ:</span> ОРАКАЛ 641 И 8500 = 0,98М, ОРАФОЛ/ОРАДЖЕТ ПОД ПЕЧАТЬ = 1,58М, БЛЕКАУТ = 1,26М, ГОЛОГРАФИЧЕСКАЯ = 1,18М, ПОД ПОРЕЗКУ НА ПЛОТТЕРЕ = 1,18М, ПЕРФОРАЦИЯ = 1,35М
+                            </>
+                        ) : activeCategory === 'PAPER' ? (
+                            <>
+                                <span className="text-[#FFD700] font-bold">ВАЖНО! </span>
+                                МАКЕТ ПРИНИМАЕТСЯ К ПЕЧАТИ В <span className="font-bold">ФОРМАТЕ TIFF</span>, РАЗМЕР <span className="font-bold">1:1</span>, ЦВЕТОВОЙ МОДЕЛИ <span className="font-bold">CMYK</span>, БЕЗ ПРОЗРАЧНОСТИ.<br className="hidden md:block"/>
+                                КАЧЕСТВО <span className="font-bold">НЕ НИЖЕ 300 dpi</span>.<br className="hidden md:block"/>
+                                ПРЕВЬЮ В <span className="font-bold">ФОРМАТЕ JPEG</span>.<br className="hidden md:block"/>
+                                <span className="text-[#FFD700]">ПРЕДЕЛЬНЫЙ РАЗМЕР ПО ШИРИНЕ ПО БУМАГЕ:</span> СИТИК (БЭКЛИТ) = 1,18М, БЛЮБЭК = 1,54М
+                            </>
+                        ) : activeCategory === 'CANVAS' ? (
+                            <>
+                                <span className="text-[#FFD700] font-bold">ВАЖНО! </span>
+                                МАКЕТ ПРИНИМАЕТСЯ К ПЕЧАТИ В <span className="font-bold">ФОРМАТЕ TIFF</span>, РАЗМЕР <span className="font-bold">1:1</span>, ЦВЕТОВОЙ МОДЕЛИ <span className="font-bold">CMYK</span>, БЕЗ ПРОЗРАЧНОСТИ.<br className="hidden md:block"/>
+                                КАЧЕСТВО <span className="font-bold">НЕ НИЖЕ 300 dpi</span>. ПРЕВЬЮ В <span className="font-bold">ФОРМАТЕ JPEG</span>.<br className="hidden md:block"/>
+                                РАЗМЕРЫ УКАЗЫВАЙТЕ С ЗАПАСОМ <span className="font-bold">60 ММ ПО ПЕРИМЕТРУ</span>.<br className="hidden md:block"/>
+                                <span className="text-[#FFD700]">ПРЕДЕЛЬНЫЙ РАЗМЕР ПО ШИРИНЕ:</span> ХОЛСТ 1,25М С УЧЕТОМ ЗАПАСА НА ЗАВОРОТ
+                            </>
+                        ) : (
+                            <>
+                                <span className="text-[#FFD700] font-bold">ВАЖНО! </span>
+                                МАКЕТ ПРИНИМАЕТСЯ К ПЕЧАТИ В <span className="font-bold">ФОРМАТЕ TIFF</span>, РАЗМЕР <span className="font-bold">1:1</span>, ЦВЕТОВОЙ МОДЕЛИ <span className="font-bold">CMYK</span>,<br className="hidden md:block"/>
+                                КАЧЕСТВО МАКЕТА <span className="font-bold">НЕ НИЖЕ 36 dpi</span> ПРИ БОЛЬШИХ РАЗМЕРАХ ИЗДЕЛИЯ,<br className="hidden md:block"/>
+                                В ОСТАЛЬНЫХ СЛУЧАЯХ КАЧЕСТВО МАКЕТА ДОЛЖНО БЫТЬ <span className="font-bold">300 dpi</span>.<br className="hidden md:block"/>
+                                <span className="text-[#FFD700]">РАЗМЕЩЕНИЕ ЛЮВЕРСОВ И КЛАПАНОВ ОБЯЗАТЕЛЬНО УКАЗЫВАЕТСЯ НА МАКЕТЕ.</span><br className="hidden md:block"/>
+                                <span className="font-bold">ПРЕДЕЛЬНЫЙ РАЗМЕР ПО ШИРИНЕ: ВСЕ БАННЕРЫ ПО 3,1М</span>
+                            </>
+                        )}
                     </div>
                 </div>
 

@@ -18,6 +18,16 @@ const CheckoutPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const total = getTotalPrice();
+  const typeLabels: Record<string, string> = {
+    VIZITKI: "ВИЗИТКИ",
+    FLAERS: "ФЛАЕРЫ",
+    PLOTTER: "ПЛОТТЕР",
+    WIDE: "ШИРОКОФОРМАТНАЯ ПЕЧАТЬ",
+    SOUVENIRS: "СУВЕНИРЫ",
+    ADDRESS_SIGNS: "АДРЕСНЫЕ ТАБЛИЧКИ",
+    LETTERS: "БУКВЫ",
+  };
+  const getTypeLabel = (type: string) => typeLabels[type] ?? type;
 
   // Функция конвертации base64 в Blob
   const base64ToBlob = (base64: string, mimeType: string): Blob => {
@@ -314,7 +324,7 @@ const CheckoutPage: React.FC = () => {
                     <div className="flex justify-between items-start mb-2">
                       <div className="flex-1">
                         <h3 className="font-bold text-[#006837] text-sm uppercase">
-                          {item.type === 'VIZITKI' ? 'ВИЗИТКИ' : 'ФЛАЕРЫ'}
+                          {getTypeLabel(item.type)}
                         </h3>
                         <p className="text-xs text-gray-600 mt-1">
                           Формат: {item.format} | {item.specs}

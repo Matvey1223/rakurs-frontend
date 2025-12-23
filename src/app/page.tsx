@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Header from "../../components/Header";
 import Hero from "../../components/Hero";
 import ServiceGrid from "../../components/ServiceGrid";
@@ -7,6 +7,24 @@ import Footer from "../../components/Footer";
 
 const App: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  useEffect(() => {
+    const scrollToProducts = () => {
+      if (window.location.hash === "#products") {
+        const section = document.getElementById("products");
+        if (section) {
+          section.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }
+    };
+
+    scrollToProducts();
+    window.addEventListener("hashchange", scrollToProducts);
+
+    return () => {
+      window.removeEventListener("hashchange", scrollToProducts);
+    };
+  }, []);
 
   return (
       <div className="min-h-screen bg-white flex flex-col">
@@ -37,10 +55,12 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          <ServiceGrid
-              selectedId={selectedCategory}
-              onSelect={(id) => setSelectedCategory(id)}
-          />
+          <div id="products">
+            <ServiceGrid
+                selectedId={selectedCategory}
+                onSelect={(id) => setSelectedCategory(id)}
+            />
+          </div>
 
           {selectedCategory === 'digital' && (
               <div className="mt-12 p-8 border-t border-gray-100 bg-gray-50 rounded-2xl animate-fade-in">

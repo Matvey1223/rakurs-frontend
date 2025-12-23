@@ -4,6 +4,17 @@ import Link from 'next/link';
 import { COLORS, NAVIGATION_LINKS } from '../constants';
 import CartIcon from './CartIcon';
 
+const NAV_LINK_ROUTES: Record<string, string> = {
+  "Главная": "/",
+  "Продукция": "/#products",
+  "О нас": "/about",
+  // "Оплата": "/payment",
+  // "Доставка": "/delivery",
+  "Отзывы": "/reviews",
+  "Помощь": "/help",
+  "Контакты": "/contacts",
+};
+
 const Header: React.FC = () => {
   return (
     <header className="w-full">
@@ -20,7 +31,25 @@ const Header: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            <span>VK / Яндекс</span>
+            <div className="flex items-center space-x-2">
+              <a
+                href="https://vk.com/reklama_feo?from=groups"
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-white/80 transition-colors"
+              >
+                VK
+              </a>
+              <span className="text-white/70">/</span>
+              <a
+                href="https://reklamnoe-agentstvo-rakurs.clients.site/"
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-white/80 transition-colors"
+              >
+                Яндекс
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -28,16 +57,8 @@ const Header: React.FC = () => {
       {/* Logo Section */}
       <div className="bg-white py-4 px-4 border-b border-gray-100">
         <div className="max-w-[1200px] mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-[#006837] rounded-lg flex items-center justify-center overflow-hidden">
-                <div className="w-8 h-8 border-2 border-white rotate-45 flex items-center justify-center">
-                    <div className="w-4 h-4 bg-white"></div>
-                </div>
-            </div>
-            <div>
-              <h1 className="text-3xl font-black text-[#006837] tracking-tighter">РАКУРС</h1>
-              <p className="text-[9px] font-bold text-[#006837] uppercase -mt-1 leading-none">Рекламно-производственная компания</p>
-            </div>
+          <div className="flex items-center">
+            <img src="/logo.svg" alt="Ракурс" className="h-24 w-auto" />
           </div>
           <div className="text-right">
             <p className="text-[#006837] font-bold text-sm leading-tight">Индивидуальные условия</p>
@@ -50,17 +71,22 @@ const Header: React.FC = () => {
       <nav className="bg-[#006837] text-white">
         <div className="max-w-[1200px] mx-auto px-4 flex justify-between items-center h-12">
           <ul className="flex space-x-8 text-sm font-semibold tracking-wide h-full items-center">
-            {NAVIGATION_LINKS.map((link) => (
-              <li key={link} className="cursor-pointer hover:text-[#00C16E] transition-colors">
-                {link}
-              </li>
-            ))}
+            {NAVIGATION_LINKS.map((link) => {
+              const href = NAV_LINK_ROUTES[link] ?? "/";
+              return (
+                <li key={link}>
+                  <Link href={href} className="cursor-pointer hover:text-[#00C16E] transition-colors">
+                    {link}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
           <div className="flex items-center space-x-4">
-            <div className="cursor-pointer hover:text-[#00C16E] transition-colors p-2">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+          <div className="cursor-pointer hover:text-[#00C16E] transition-colors p-2">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
             </div>
             <Link href="/cart">
               <CartIcon onClick={() => {}} />
