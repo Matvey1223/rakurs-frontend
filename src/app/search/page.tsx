@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import React, { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import Header from "../../../components/Header";
 import Footer from "../../../components/Footer";
 
@@ -97,9 +97,13 @@ const getScore = (item: SearchItem, query: string) => {
 
 const SearchPage: React.FC = () => {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const initialQuery = searchParams.get("q") ?? "";
-  const [query, setQuery] = useState<string>(initialQuery);
+  const [query, setQuery] = useState<string>("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("q") ?? "";
+    setQuery(q);
+  }, []);
 
   const results = useMemo(() => {
     const q = normalize(query);
