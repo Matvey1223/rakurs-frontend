@@ -275,16 +275,6 @@ const CheckoutPage: React.FC = () => {
                     <input
                       type="radio"
                       name="payment"
-                      value="cash"
-                      defaultChecked
-                      className="w-5 h-5 border-2 border-[#006837] accent-[#006837]"
-                    />
-                    <span className="font-semibold text-[#006837]">Наличными при получении</span>
-                  </label>
-                  <label className="flex items-center space-x-3 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="payment"
                       value="card"
                       className="w-5 h-5 border-2 border-[#006837] accent-[#006837]"
                     />

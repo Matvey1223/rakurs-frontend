@@ -8,8 +8,8 @@ const NAV_LINK_ROUTES: Record<string, string> = {
   "Главная": "/",
   "Продукция": "/#products",
   "О нас": "/about",
-  // "Оплата": "/payment",
-  // "Доставка": "/delivery",
+  "Оплата": "/payment",
+  "Доставка": "/delivery",
   "Отзывы": "/reviews",
   "Помощь": "/help",
   "Контакты": "/contacts",
@@ -21,7 +21,7 @@ const Header: React.FC = () => {
       {/* Top Green Contact Bar */}
       <div className="bg-[#00C16E] text-white py-2 px-4">
         <div className="max-w-[1200px] mx-auto flex justify-between items-center text-xs sm:text-sm font-medium">
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-6 text-[#1f1f1f]">
             <span>Мы на связи с 9:00 до 17:00</span>
             <div className="flex items-center space-x-2">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -31,7 +31,7 @@ const Header: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 text-[#1f1f1f]">
               <a
                 href="https://vk.com/reklama_feo?from=groups"
                 target="_blank"
@@ -40,7 +40,7 @@ const Header: React.FC = () => {
               >
                 VK
               </a>
-              <span className="text-white/70">/</span>
+              <span className="text-[#1f1f1f]">/</span>
               <a
                 href="https://reklamnoe-agentstvo-rakurs.clients.site/"
                 target="_blank"
@@ -56,21 +56,22 @@ const Header: React.FC = () => {
 
       {/* Logo Section */}
       <div className="bg-white py-4 px-4 border-b border-gray-100">
-        <div className="max-w-[1200px] mx-auto flex justify-between items-center">
-          <div className="flex items-center">
+        <div className="max-w-[1200px] mx-auto flex items-center">
+          <div className="flex items-center gap-5">
             <img src="/logo.svg" alt="Ракурс" className="h-24 w-auto" />
-          </div>
-          <div className="text-right">
-            <p className="text-[#006837] font-bold text-sm leading-tight">Индивидуальные условия</p>
-            <p className="text-[#006837] text-sm leading-tight">при постоянном сотрудничестве</p>
+            <div className="h-14 w-[3px] bg-[#2f2f2f]" />
+            <div className="text-[#006837] font-bold text-xl leading-tight">
+              <div>Индивидуальные условия</div>
+              <div>при постоянном сотрудничестве</div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Dark Green Navigation Menu */}
       <nav className="bg-[#006837] text-white">
-        <div className="max-w-[1200px] mx-auto px-4 flex justify-between items-center h-12">
-          <ul className="flex space-x-8 text-sm font-semibold tracking-wide h-full items-center">
+        <div className="max-w-[1200px] mx-auto px-4 flex items-center h-12 gap-6">
+          <ul className="flex flex-1 items-center justify-between text-lg tracking-wide h-full pr-12">
             {NAVIGATION_LINKS.map((link) => {
               const href = NAV_LINK_ROUTES[link] ?? "/";
               return (
@@ -82,12 +83,12 @@ const Header: React.FC = () => {
               );
             })}
           </ul>
-          <div className="flex items-center space-x-4">
-          <div className="cursor-pointer hover:text-[#00C16E] transition-colors p-2">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            </div>
+          <div className="flex items-center space-x-2 shrink-0">
+            <Link href="/search" className="cursor-pointer hover:text-[#00C16E] transition-colors p-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </Link>
             <Link href="/cart">
               <CartIcon onClick={() => {}} />
             </Link>

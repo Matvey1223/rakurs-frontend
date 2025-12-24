@@ -674,18 +674,18 @@ const WideFormatPage: React.FC = () => {
                                     handleAddToCart();
                                 }}
                             >
-                                <div className="bg-[#00C16E] hover:bg-[#00a860] text-white font-bold flex-grow flex items-center justify-center uppercase text-base transition-colors">
-                                    ОФОРМИТЬ ЗАКАЗ
-                                </div>
-                                <div className="relative w-16 bg-[#006837]">
-                                    <div className="absolute left-0 top-0 bottom-0 w-6 bg-[#00C16E] hover:bg-[#00a860] origin-top-left transform -skew-x-[20deg] -ml-3 transition-colors"></div>
-                                    <div className="relative z-10 h-full flex items-center justify-center text-white">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                                        </svg>
-                                    </div>
-                                </div>
-                            </button>
+                                  <div
+                                      className="bg-[#00C16E] hover:bg-[#00a860] text-white font-bold flex-grow flex items-center justify-center uppercase text-base transition-colors relative z-10 -mr-4"
+                                      style={{
+                                          clipPath: "polygon(0 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 0 100%)",
+                                      }}
+                                  >
+                                      ОФОРМИТЬ ЗАКАЗ
+                                  </div>
+                                  <div className="w-16 bg-[#006837] flex items-center justify-center">
+                                      <img src="/cart.svg" alt="Корзина" className="w-7 h-7" />
+                                  </div>
+                              </button>
                         </div>
                     </div>
                 </div>
@@ -933,14 +933,20 @@ const WideFormatPage: React.FC = () => {
                                     handleAddToCart();
                                 }}
                             >
-                                <div className={`bg-[#00C16E] text-white font-bold px-4 flex-grow flex items-center justify-center uppercase text-lg text-center ${sizeError ? 'bg-gray-400' : ''}`}>
-                                    {sizeError ? "НЕВЕРНЫЙ РАЗМЕР" : "ДОБАВИТЬ В КОРЗИНУ"}
-                                </div>
-                                <div className={`bg-[#006837] text-white w-14 flex items-center justify-center relative ${sizeError ? 'bg-gray-600' : ''}`}>
-                                    <div className={`absolute left-0 top-0 bottom-0 w-4 transform -skew-x-12 origin-top-left ${sizeError ? 'bg-gray-400' : 'bg-[#00C16E]'}`}></div>
-                                    <span className="text-2xl z-10 relative">🛒</span>
-                                </div>
-                            </button>
+                                  <div
+                                      className={`text-white font-bold px-4 flex-grow flex items-center justify-center uppercase text-lg text-center relative z-10 -mr-4 ${
+                                          sizeError ? "bg-gray-400" : "bg-[#00C16E]"
+                                      }`}
+                                      style={{
+                                          clipPath: "polygon(0 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 0 100%)",
+                                      }}
+                                  >
+                                      {sizeError ? "НЕВЕРНЫЙ РАЗМЕР" : "ОФОРМИТЬ ЗАКАЗ"}
+                                  </div>
+                                  <div className={`text-white w-16 flex items-center justify-center ${sizeError ? "bg-gray-600" : "bg-[#006837]"}`}>
+                                      <img src="/cart.svg" alt="Корзина" className="w-7 h-7" />
+                                  </div>
+                              </button>
                         </div>
                     </div>
 

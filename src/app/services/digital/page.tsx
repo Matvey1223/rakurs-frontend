@@ -671,15 +671,16 @@ const DigitalPrintingPage: React.FC = () => {
                                     handleAddToCart();
                                 }}
                             >
-                                <div className="bg-[#00C16E] text-white font-bold py-3 px-6 flex-grow flex items-center justify-center uppercase text-lg clip-path-button-left">
-                                    ДОБАВИТЬ В КОРЗИНУ
+                                <div
+                                    className="bg-[#00C16E] text-white font-bold py-3 px-6 flex-grow flex items-center justify-center uppercase text-lg relative z-10 -mr-4"
+                                    style={{
+                                        clipPath: "polygon(0 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 0 100%)",
+                                    }}
+                                >
+                                    ОФОРМИТЬ ЗАКАЗ
                                 </div>
-                                <div className="bg-[#006837] text-white w-16 flex items-center justify-center relative">
-                                    {/* Треугольник для стыка (визуальный эффект скоса) можно сделать CSS или SVG, здесь упростим до блока */}
-                                    <div className="absolute left-0 top-0 bottom-0 w-4 bg-[#00C16E] transform -skew-x-12 origin-top-left"></div>
-                                    <span className="text-2xl z-10 relative">🛒</span>
-                                    {/* Маленький плюсик */}
-                                    <span className="absolute top-3 right-3 text-[10px] font-bold z-10">+</span>
+                                <div className="bg-[#006837] text-white w-16 flex items-center justify-center">
+                                    <img src="/cart.svg" alt="Корзина" className="w-7 h-7" />
                                 </div>
                             </button>
                         </div>

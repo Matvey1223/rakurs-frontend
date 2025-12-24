@@ -375,17 +375,21 @@ const LettersPage: React.FC = () => {
           }}
           className="flex rounded-md overflow-hidden w-full"
         >
-          <div className="bg-[#00C16E] text-white font-bold py-3 px-4 flex-grow flex items-center justify-center uppercase text-base">
-            ОФОРМИТЬ ЗАКАЗ
-          </div>
-          <div className="bg-[#006837] text-white w-14 flex items-center justify-center relative">
-            <div className="absolute left-0 top-0 bottom-0 w-4 bg-[#00C16E] transform -skew-x-12 origin-top-left" />
-            <span className="text-2xl z-10 relative">🛒</span>
-          </div>
-        </button>
+            <div
+              className="bg-[#00C16E] text-white font-bold py-3 px-4 flex-grow flex items-center justify-center uppercase text-base relative z-10 -mr-4"
+              style={{
+                clipPath: "polygon(0 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 0 100%)",
+              }}
+            >
+              ОФОРМИТЬ ЗАКАЗ
+            </div>
+            <div className="bg-[#006837] text-white w-16 flex items-center justify-center">
+              <img src="/cart.svg" alt="Корзина" className="w-7 h-7" />
+            </div>
+          </button>
+        </div>
       </div>
-    </div>
-  );
+    );
 
   const renderNotesPalette = (colors: { code: string; hex: string }[]) => (
     <div className="flex flex-col sm:flex-row gap-3 items-start">

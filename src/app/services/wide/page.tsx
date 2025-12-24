@@ -74,21 +74,21 @@ const WideFormatPage: React.FC = () => {
             title: "ЛАМИНИРОВАННЫЙ",
             subtitle: "плотность 440гр",
             pricePerSqM: 650,
-            image: "https://placehold.co/400x300/e2e8f0/006837?text=Ламинированный" // Замени на свое фото
+            image: "/large_format/banner/laminated.jpg" // Замени на свое фото
         },
         {
             id: "cast",
             title: "ЛИТОЙ",
             subtitle: "плотность 510гр",
             pricePerSqM: 750,
-            image: "https://placehold.co/400x300/e2e8f0/006837?text=Литой" // Замени на свое фото
+            image: "/large_format/banner/cast.jpg" // Замени на свое фото
         },
         {
             id: "mesh",
             title: "ПЕРФОРИРОВАННЫЙ",
             subtitle: "плотность 360гр", // Сетка
             pricePerSqM: 750,
-            image: "https://placehold.co/400x300/e2e8f0/006837?text=Сетка" // Замени на свое фото
+            image: "/large_format/banner/perforated.jpg" // Замени на свое фото
         }
     ];
 
@@ -99,7 +99,7 @@ const WideFormatPage: React.FC = () => {
             subtitle: "",
             pricePerSqM: 750, // Орафол/ораджет = 750р/кв.м
             maxWidth: 1.58, // Орафол/ораджет под печать 1,58м
-            image: "https://placehold.co/400x300/e2e8f0/006837?text=ОРАФОЛ"
+            image: "/large_format/film/orafol.jpg"
         },
         {
             id: "blackout",
@@ -107,7 +107,7 @@ const WideFormatPage: React.FC = () => {
             subtitle: "",
             pricePerSqM: 750, // Блекаут (используем базовую цену)
             maxWidth: 1.26, // Блекаут 1,26м
-            image: "https://placehold.co/400x300/e2e8f0/006837?text=БЛЕКАУТ"
+            image: "/large_format/film/blackout.jpg"
         },
         {
             id: "perfofilm",
@@ -115,7 +115,7 @@ const WideFormatPage: React.FC = () => {
             subtitle: "",
             pricePerSqM: 850, // Перфорированная пленка = 850р/кв.м
             maxWidth: 1.35, // Перфорация 1,35м
-            image: "https://placehold.co/400x300/e2e8f0/006837?text=ПЕРФОПЛЕНКА"
+            image: "/large_format/film/perfofilm.jpg"
         },
         {
             id: "holographic_film",
@@ -123,7 +123,7 @@ const WideFormatPage: React.FC = () => {
             subtitle: "",
             pricePerSqM: 1000, // Голографическая пленка = 1000р/кв.м
             maxWidth: 1.18, // Голографическая 1,18м
-            image: "https://placehold.co/400x300/e2e8f0/006837?text=ГОЛОГРАФИЧЕСКАЯ"
+            image: "/large_format/film/holographic.jpg"
         }
     ];
 
@@ -134,7 +134,7 @@ const WideFormatPage: React.FC = () => {
             subtitle: "",
             pricePerSqM: 500,
             maxWidth: 1.54,
-            image: "https://placehold.co/400x300/e2e8f0/006837?text=БЛЮБЭК" // Замени на свое фото
+            image: "/large_format/paper/blueback.png" // Замени на свое фото
         },
         {
             id: "backlit",
@@ -142,7 +142,7 @@ const WideFormatPage: React.FC = () => {
             subtitle: "",
             pricePerSqM: 600,
             maxWidth: 1.18,
-            image: "https://placehold.co/400x300/e2e8f0/006837?text=БЭКЛИТ" // Замени на свое фото
+            image: "/large_format/paper/backlit.png" // Замени на свое фото
         },
     ];
 
@@ -153,7 +153,7 @@ const WideFormatPage: React.FC = () => {
             subtitle: "",
             pricePerSqM: 2500,
             maxWidth: 1.25,
-            image: "https://placehold.co/400x300/e2e8f0/006837?text=ХОЛСТ" // Замени на свое фото
+            image: "/large_format/canvas/canvas.png" // Замени на свое фото
         },
     ];
 
@@ -411,7 +411,7 @@ const WideFormatPage: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {activeCategory === 'BANNER' && bannerMaterials.map((mat) => (
                     <div key={mat.id} onClick={() => handleMaterialSelect(mat)} className="group cursor-pointer flex flex-col">
-                        <div className="rounded-xl border-2 border-gray-300 overflow-hidden bg-white aspect-[4/3] mb-4 relative shadow-sm group-hover:border-[#00C16E] group-hover:shadow-lg transition-all">
+                        <div className="rounded-xl border-2 border-gray-300 overflow-hidden bg-white aspect-[4/4] mb-4 relative shadow-sm group-hover:border-[#00C16E] group-hover:shadow-lg transition-all">
                             <img src={mat.image} alt={mat.title} className="w-full h-full object-cover" />
                         </div>
                         <h3 className="font-bold text-[#006837] uppercase text-lg group-hover:text-[#00C16E] transition-colors leading-tight">
@@ -424,7 +424,7 @@ const WideFormatPage: React.FC = () => {
                 {/* Заглушки для других категорий */}
                 {activeCategory === 'FILM' && filmMaterials.map((mat) => (
                     <div key={mat.id} onClick={() => handleMaterialSelect(mat)} className="group cursor-pointer flex flex-col">
-                        <div className="rounded-xl border-2 border-gray-300 overflow-hidden bg-white aspect-[4/3] mb-4 relative shadow-sm group-hover:border-[#00C16E] group-hover:shadow-lg transition-all">
+                        <div className="rounded-xl border-2 border-gray-300 overflow-hidden bg-white aspect-[4/4] mb-4 relative shadow-sm group-hover:border-[#00C16E] group-hover:shadow-lg transition-all">
                             <img src={mat.image} alt={mat.title} className="w-full h-full object-cover" />
                         </div>
                         <h3 className="font-bold text-[#006837] uppercase text-lg group-hover:text-[#00C16E] transition-colors leading-tight">
@@ -436,7 +436,7 @@ const WideFormatPage: React.FC = () => {
 
                 {activeCategory === 'PAPER' && paperMaterials.map((mat) => (
                     <div key={mat.id} onClick={() => handleMaterialSelect(mat)} className="group cursor-pointer flex flex-col">
-                        <div className="rounded-xl border-2 border-gray-300 overflow-hidden bg-white aspect-[4/3] mb-4 relative shadow-sm group-hover:border-[#00C16E] group-hover:shadow-lg transition-all">
+                        <div className="rounded-xl border-2 border-gray-300 overflow-hidden bg-white aspect-[4/4] mb-4 relative shadow-sm group-hover:border-[#00C16E] group-hover:shadow-lg transition-all">
                             <img src={mat.image} alt={mat.title} className="w-full h-full object-cover" />
                         </div>
                         <h3 className="font-bold text-[#006837] uppercase text-lg group-hover:text-[#00C16E] transition-colors leading-tight">
@@ -448,7 +448,7 @@ const WideFormatPage: React.FC = () => {
 
                 {activeCategory === 'CANVAS' && canvasMaterials.map((mat) => (
                     <div key={mat.id} onClick={() => handleMaterialSelect(mat)} className="group cursor-pointer flex flex-col">
-                        <div className="rounded-xl border-2 border-gray-300 overflow-hidden bg-white aspect-[4/3] mb-4 relative shadow-sm group-hover:border-[#00C16E] group-hover:shadow-lg transition-all">
+                        <div className="rounded-xl border-2 border-gray-300 overflow-hidden bg-white aspect-[4/4] mb-4 relative shadow-sm group-hover:border-[#00C16E] group-hover:shadow-lg transition-all">
                             <img src={mat.image} alt={mat.title} className="w-full h-full object-cover" />
                         </div>
                         <h3 className="font-bold text-[#006837] uppercase text-lg group-hover:text-[#00C16E] transition-colors leading-tight">
@@ -829,23 +829,19 @@ const WideFormatPage: React.FC = () => {
                                 }}
                             >
                                 {/* Левая часть (Текст) */}
-                                <div className="bg-[#00C16E] hover:bg-[#00a860] text-white font-bold flex-grow flex items-center justify-center uppercase text-base transition-colors">
-                                    ДОБАВИТЬ В КОРЗИНУ
-                                </div>
+                                  <div
+                                      className="bg-[#00C16E] hover:bg-[#00a860] text-white font-bold flex-grow flex items-center justify-center uppercase text-base transition-colors relative z-10 -mr-4"
+                                      style={{
+                                          clipPath: "polygon(0 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 0 100%)",
+                                      }}
+                                  >
+                                      ОФОРМИТЬ ЗАКАЗ
+                                  </div>
 
-                                {/* Разделитель и иконка */}
-                                <div className="relative w-16 bg-[#006837]">
-                                    {/* Косой срез */}
-                                    <div className="absolute left-0 top-0 bottom-0 w-6 bg-[#00C16E] hover:bg-[#00a860] origin-top-left transform -skew-x-[20deg] -ml-3 transition-colors"></div>
-                                    {/* Иконка корзины */}
-                                    <div className="relative z-10 h-full flex items-center justify-center text-white">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                                        </svg>
-                                        <span className="absolute top-2 right-3 text-[10px] font-bold leading-none">+</span>
-                                    </div>
-                                </div>
-                            </button>
+                                  <div className="w-16 bg-[#006837] flex items-center justify-center">
+                                      <img src="/cart.svg" alt="Корзина" className="w-7 h-7" />
+                                  </div>
+                              </button>
 
                         </div>
                     </div>
